@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: hackathon-backend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: cd server && npm install && npm run build
+    startCommand: cd server && node dist/index.js
+    rootDir: server
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: MONGODB_URI
+        fromDatabase:
+          name: hackathon-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLIENT_ORIGIN
+        value: https://hackathon-client.onrender.com,http://localhost:5173
+      - key: ADMIN_EMAIL
+        value: admin@hackathon.local
+      - key: ADMIN_PASSWORD
+        value: Admin@123
+      - key: TEAM_MAX_SIZE
+        value: '4'
+      - key: PAYMENT_AMOUNT
+        value: '500'
+
+  - type: static
+    name: hackathon-client
+    env: static
+    region: oregon
+    buildCommand: cd client && npm install && npm run build
+    staticPublishPath: client/dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://hackathon-backend.onrender.com/api

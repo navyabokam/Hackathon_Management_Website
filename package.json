@@ -1,0 +1,37 @@
+{
+  "name": "hackathon-registration",
+  "version": "1.0.0",
+  "description": "College Hackathon Registration & Management Website",
+  "private": true,
+  "scripts": {
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install && cd ..",
+    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\"",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "build": "cd server && npm run build && cd ../client && npm run build",
+    "build:server": "cd server && npm run build",
+    "build:client": "cd client && npm run build",
+    "test": "concurrently \"cd server && npm run test\" \"cd client && npm run test\"",
+    "test:server": "cd server && npm run test",
+    "test:client": "cd client && npm run test",
+    "lint": "concurrently \"cd server && npm run lint\" \"cd client && npm run lint\"",
+    "lint:server": "cd server && npm run lint",
+    "lint:client": "cd client && npm run lint",
+    "format": "concurrently \"cd server && npm run format\" \"cd client && npm run format\"",
+    "seed": "cd server && npm run seed"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "hackathon",
+    "registration",
+    "mern",
+    "react",
+    "node"
+  ],
+  "author": "",
+  "license": "MIT"
+}
