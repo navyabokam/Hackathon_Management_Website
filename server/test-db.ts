@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const mongoUri = 'mongodb+srv://myAtlasDBUser:LKObOv1hmxFTacoL@myatlasclusteredu.bw6sol8.mongodb.net/hackathon?retryWrites=true&w=majority';
+const mongoUri = 'mongodb+srv://myAtlasDBUser:XXXXXXXXXXXX@myatlasclusteredu.bw6sol8.mongodb.net/hackathon?retryWrites=true&w=majority';
 
 console.log('Starting MongoDB connection test...');
 console.log('URI:', mongoUri.replace(/:[^@]+@/, ':***@'));

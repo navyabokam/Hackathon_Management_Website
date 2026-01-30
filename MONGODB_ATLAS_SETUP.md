@@ -102,9 +102,6 @@ Both server and client will start:
 
 ## Next Steps
 
-Admin credentials for dashboard:
-- Email: `admin@hackathon.local`
-- Password: `Admin@123`
 
 Go to: http://localhost:5173/admin/login
 
