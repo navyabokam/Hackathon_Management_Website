@@ -11,16 +11,16 @@ import mongoose from 'mongoose';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { config } from './config/index';
-import { errorHandler } from './middleware/error';
+import { config } from './config/index.js';
+import { errorHandler } from './middleware/error.js';
 
-import teamsRouter from './routes/teams';
-import paymentsRouter from './routes/payments';
-import adminAuthRouter from './routes/admin';
-import adminTeamsRouter from './routes/admin-teams';
-import adminSearchRouter from './routes/admin-search';
-import adminExportRouter from './routes/admin-export';
-import healthRouter from './routes/health';
+import teamsRouter from './routes/teams.js';
+import paymentsRouter from './routes/payments.js';
+import adminAuthRouter from './routes/admin.js';
+import adminTeamsRouter from './routes/admin-teams.js';
+import adminSearchRouter from './routes/admin-search.js';
+import adminExportRouter from './routes/admin-export.js';
+import healthRouter from './routes/health.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
