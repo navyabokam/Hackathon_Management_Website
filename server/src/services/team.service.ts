@@ -1,8 +1,8 @@
-import { Team, Payment, type ITeam } from '../models/index';
-import { RegisterTeamInput } from '../schemas/index';
-import { generateRegistrationId, generateTransactionRef } from '../utils/id-generator';
-import { sendConfirmationEmail } from '../utils/email';
-import { config } from '../config/index';
+import { Team, Payment, type ITeam } from '../models/index.js';
+import { RegisterTeamInput } from '../schemas/index.js';
+import { generateRegistrationId, generateTransactionRef } from '../utils/id-generator.js';
+import { sendConfirmationEmail } from '../utils/email.js';
+import { config } from '../config/index.js';
 
 export async function checkDuplicateParticipants(
   input: RegisterTeamInput

@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import { config } from '../config/index';
-import { createAdminUser, getAdminByEmail } from '../services/index';
+import { config } from '../config/index.js';
+import { createAdminUser, getAdminByEmail } from '../services/index.js';
 
 async function seed(): Promise<void> {
   try {

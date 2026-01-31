@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
-import { LoginSchema } from '../schemas/index';
-import * as authService from '../services/auth.service';
-import { AuthRequest, authMiddleware } from '../middleware/auth';
+import { LoginSchema } from '../schemas/index.js';
+import * as authService from '../services/auth.service.js';
+import { AuthRequest, authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 

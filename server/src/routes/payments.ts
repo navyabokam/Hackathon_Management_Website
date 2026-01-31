@@ -1,10 +1,10 @@
 import { Router, Response } from 'express';
-import { PaymentConfirmSchema } from '../schemas/index';
-import * as teamService from '../services/team.service';
-import { AuthRequest } from '../middleware/auth';
-import { generateTransactionRef } from '../utils/id-generator';
-import { Payment } from '../models/index';
-import { config } from '../config/index';
+import { PaymentConfirmSchema } from '../schemas/index.js';
+import * as teamService from '../services/team.service.js';
+import { AuthRequest } from '../middleware/auth.js';
+import { generateTransactionRef } from '../utils/id-generator.js';
+import { Payment } from '../models/index.js';
+import { config } from '../config/index.js';
 
 const router = Router();
 

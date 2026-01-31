@@ -2,7 +2,8 @@ import axios, { AxiosInstance } from 'axios';
 import type { Team, RegisterTeamInput } from '../types/index';
 
 // Determine backend URL based on current environment
-const backendUrl = (import.meta.env.VITE_API_URL as string | undefined) || 'http://localhost:4000/api';
+// In production on Render, use relative URL since server serves the client
+const backendUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:4000/api');
 
 const api: AxiosInstance = axios.create({
   baseURL: backendUrl,

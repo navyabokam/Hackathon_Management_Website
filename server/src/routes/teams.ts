@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { RegisterTeamSchema } from '../schemas/index';
-import * as teamService from '../services/team.service';
+import { RegisterTeamSchema } from '../schemas/index.js';
+import * as teamService from '../services/team.service.js';
 
 const router = Router();
 

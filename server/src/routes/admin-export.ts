@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import * as XLSX from 'xlsx';
-import * as teamService from '../services/team.service';
-import { AuthRequest, authMiddleware } from '../middleware/auth';
+import * as teamService from '../services/team.service.js';
+import { AuthRequest, authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 

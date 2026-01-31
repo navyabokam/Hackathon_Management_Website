@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { AdminUser, type IAdminUser } from '../models/index';
-import { config } from '../config/index';
+import { AdminUser, type IAdminUser } from '../models/index.js';
+import { config } from '../config/index.js';
 
 export async function createAdminUser(email: string, password: string): Promise<IAdminUser> {
   const salt = await bcrypt.genSalt(10);
