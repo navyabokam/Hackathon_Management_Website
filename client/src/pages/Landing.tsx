@@ -27,7 +27,11 @@ export default function Landing(): React.ReactElement {
       <section className="relative py-8 sm:py-16 md:py-20 px-3 sm:px-4">
         <div className="max-w-7xl mx-auto text-center">
           <div className="mb-6 sm:mb-4">
-            <p className="text-blue-300 text-xs sm:text-sm uppercase tracking-wider sm:tracking-widest mb-3 sm:mb-2">Department of CSE Presents</p>
+            <div className="inline-block mb-4 sm:mb-3">
+              <p className="text-blue-200 text-sm sm:text-base uppercase tracking-[0.2em] sm:tracking-[0.3em] font-semibold px-6 py-2 bg-blue-500/20 rounded-full border border-blue-400/30 backdrop-blur-sm shadow-lg">
+                Department of CSE Presents
+              </p>
+            </div>
             <h1 className="text-[2.5rem] leading-[1.1] sm:text-5xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 mb-4 pb-2 sm:pb-4">
               ForgeAscend v1.0
             </h1>
@@ -39,7 +43,7 @@ export default function Landing(): React.ReactElement {
               24 HOUR MEGA BUILD-A-THON
             </h2>
             <p className="text-xs sm:text-base md:text-lg text-blue-200 max-w-4xl mx-auto leading-relaxed px-4 sm:px-6">
-              A STRUCTURED EXPERIENCE WHERE LEARNING MEETS HIGH-ENERGY COMPETITION AND REAL-WORLD BUILDING
+              Build a Complete Full-Stack Project from Scratch with Expert Guidance
             </p>
           </div>
 
