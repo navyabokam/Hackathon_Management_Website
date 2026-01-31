@@ -11,6 +11,7 @@
     "build": "cd server && npm run build && cd ../client && npm run build",
     "build:server": "cd server && npm run build",
     "build:client": "cd client && npm run build",
+    "start": "cd server && npm run start",
     "test": "concurrently \"cd server && npm run test\" \"cd client && npm run test\"",
     "test:server": "cd server && npm run test",
     "test:client": "cd client && npm run test",
