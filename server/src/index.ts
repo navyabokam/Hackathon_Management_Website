@@ -59,7 +59,10 @@ app.use('/api/teams', teamsRouter);
 app.use('/api/payments', paymentsRouter);
 app.use('/api/admin/auth', adminAuthRouter);
 app.use('/api/admin/teams', adminTeamsRouter);
-appServe static files from client build in production
+app.use('/api/admin/search', adminSearchRouter);
+app.use('/api/admin/export', adminExportRouter);
+
+// Serve static files from client build in production
 if (config.nodeEnv === 'production') {
   const clientBuildPath = path.join(__dirname, '../../client/dist');
   console.log(`📁 Serving static files from: ${clientBuildPath}`);
@@ -71,9 +74,6 @@ if (config.nodeEnv === 'production') {
     res.sendFile(path.join(clientBuildPath, 'index.html'));
   });
 }
-
-// .use('/api/admin/search', adminSearchRouter);
-app.use('/api/admin/export', adminExportRouter);
 
 // Error handling
 app.use(errorHandler);
