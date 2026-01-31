@@ -79,6 +79,13 @@ if (config.nodeEnv === 'production') {
 app.use(errorHandler);
 
 export async function startServer(): Promise<void> {
+  // Start server first
+  const server = app.listen(config.port, () => {
+    console.log(`✓ Server running on http://localhost:${config.port}`);
+    console.log(`✓ Environment: ${config.nodeEnv}`);
+  });
+
+  // Then try to connect to MongoDB
   try {
     // Log MongoDB URI (without password)
     const uriDisplay = config.mongodbUri.replace(/:[^@]+@/, ':***@');
@@ -92,14 +99,8 @@ export async function startServer(): Promise<void> {
       connectTimeoutMS: 10000,
     });
     console.log('✓ Connected to MongoDB');
-
-    // Start server
-    app.listen(config.port, () => {
-      console.log(`✓ Server running on http://localhost:${config.port}`);
-      console.log(`✓ Environment: ${config.nodeEnv}`);
-    });
   } catch (error) {
-    console.error('✗ Failed to start server:', error);
+    console.error('✗ Failed to connect to MongoDB:', error);
     if (error instanceof Error) {
       console.error('Error name:', error.name);
       console.error('Error message:', error.message);
@@ -117,7 +118,7 @@ export async function startServer(): Promise<void> {
     } else {
       console.error('Unknown error type:', typeof error, error);
     }
-    process.exit(1);
+    console.error('⚠️  Server will continue running without database');
   }
 }
 
@@ -128,6 +129,5 @@ if (import.meta.url.endsWith(process.argv[1]) || process.argv[1]?.includes('inde
   console.log('[STARTUP] Calling startServer()...');
   startServer().catch(err => {
     console.error('[STARTUP] startServer failed:', err);
-    process.exit(1);
   });
 }
