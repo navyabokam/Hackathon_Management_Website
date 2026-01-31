@@ -101,12 +101,21 @@ export async function startServer(): Promise<void> {
   } catch (error) {
     console.error('✗ Failed to start server:', error);
     if (error instanceof Error) {
+      console.error('Error name:', error.name);
       console.error('Error message:', error.message);
-      if (error.message.includes('authentication')) {
-        console.error('⚠️  MONGODB ERROR: Check your username/password in .env');
+      console.error('Error stack:', error.stack);
+      
+      if (error.message.includes('authentication') || error.message.includes('auth')) {
+        console.error('⚠️  MONGODB ERROR: Check your username/password');
+      } else if (error.message.includes('ENOTFOUND') || error.message.includes('getaddrinfo')) {
+        console.error('⚠️  DNS ERROR: Cannot resolve MongoDB hostname');
+      } else if (error.message.includes('timeout') || error.message.includes('ETIMEDOUT')) {
+        console.error('⚠️  TIMEOUT ERROR: Check MongoDB Atlas IP whitelist (add 0.0.0.0/0)');
       } else if (error.message.includes('connect')) {
-        console.error('⚠️  CONNECTION ERROR: Check MongoDB Atlas network whitelist');
+        console.error('⚠️  CONNECTION ERROR: Check MongoDB Atlas network access settings');
       }
+    } else {
+      console.error('Unknown error type:', typeof error, error);
     }
     process.exit(1);
   }
