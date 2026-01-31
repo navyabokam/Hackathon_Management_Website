@@ -8,6 +8,8 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 import { config } from './config/index';
 import { errorHandler } from './middleware/error';
@@ -19,6 +21,9 @@ import adminTeamsRouter from './routes/admin-teams';
 import adminSearchRouter from './routes/admin-search';
 import adminExportRouter from './routes/admin-export';
 import healthRouter from './routes/health';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app: Express = express();
 
@@ -54,7 +59,20 @@ app.use('/api/teams', teamsRouter);
 app.use('/api/payments', paymentsRouter);
 app.use('/api/admin/auth', adminAuthRouter);
 app.use('/api/admin/teams', adminTeamsRouter);
-app.use('/api/admin/search', adminSearchRouter);
+appServe static files from client build in production
+if (config.nodeEnv === 'production') {
+  const clientBuildPath = path.join(__dirname, '../../client/dist');
+  console.log(`📁 Serving static files from: ${clientBuildPath}`);
+  
+  app.use(express.static(clientBuildPath));
+  
+  // Handle React Router - send all non-API requests to index.html
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(clientBuildPath, 'index.html'));
+  });
+}
+
+// .use('/api/admin/search', adminSearchRouter);
 app.use('/api/admin/export', adminExportRouter);
 
 // Error handling
