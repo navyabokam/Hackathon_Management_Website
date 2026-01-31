@@ -40,12 +40,12 @@ app.use(cookieParser());
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 200, // limit each IP to 200 requests per windowMs
 });
 
 const strictLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10, // stricter limit for registration and payment
+  max: 50, // Allow more concurrent registrations from same IP (e.g., college campus)
   skip: (req) => req.method === 'OPTIONS', // Skip rate limiting for CORS preflight
 });
 
@@ -94,9 +94,12 @@ export async function startServer(): Promise<void> {
     // Connect to MongoDB with timeout
     console.log('⏳ Connecting to MongoDB...');
     await mongoose.connect(config.mongodbUri, {
-      serverSelectionTimeoutMS: 10000, // 10 second timeout
-      socketTimeoutMS: 10000,
-      connectTimeoutMS: 10000,
+      serverSelectionTimeoutMS: 30000, // 30 second timeout
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 30000,
+      maxPoolSize: 50, // Increased connection pool for concurrent requests
+      minPoolSize: 5,
+      maxIdleTimeMS: 60000,
     });
     console.log('✓ Connected to MongoDB');
   } catch (error) {

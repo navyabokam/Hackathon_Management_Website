@@ -9,8 +9,14 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     const input = RegisterTeamSchema.parse(req.body);
 
-    // Check for duplicates
-    const duplicate = await teamService.checkDuplicateParticipants(input);
+    // Check for duplicates with timeout protection
+    const duplicateCheckPromise = teamService.checkDuplicateParticipants(input);
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Duplicate check timeout')), 15000)
+    );
+
+    const duplicate = await Promise.race([duplicateCheckPromise, timeoutPromise]) as Awaited<ReturnType<typeof teamService.checkDuplicateParticipants>>;
+    
     if (duplicate.isDuplicate) {
       res.status(409).json({
         error: `Duplicate ${duplicate.field}: A participant with this email/phone already exists`,
@@ -26,11 +32,16 @@ router.post('/', async (req: Request, res: Response) => {
       status: team.status,
     });
   } catch (error) {
-    if (error instanceof Error && error.message.includes('duplicate')) {
+    if (error instanceof Error && error.message === 'Duplicate check timeout') {
+      console.error('Duplicate check timeout - server may be overloaded');
+      res.status(503).json({ error: 'Service temporarily unavailable, please try again' });
+    } else if (error instanceof Error && error.message.includes('duplicate')) {
       res.status(409).json({ error: 'Team or participant already registered' });
     } else if (error instanceof Error) {
+      console.error('Registration error:', error);
       res.status(400).json({ error: error.message });
     } else {
+      console.error('Unknown registration error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
