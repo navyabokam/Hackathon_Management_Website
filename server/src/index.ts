@@ -86,6 +86,18 @@ export async function startServer(): Promise<void> {
     console.log(`✓ Environment: ${config.nodeEnv}`);
   });
 
+  // Log email configuration status
+  console.log('\n📧 EMAIL CONFIGURATION:');
+  if (config.email.user && config.email.pass) {
+    console.log(`  ✓ Email user: ${config.email.user}`);
+    console.log(`  ✓ Email password: ${config.email.pass.length} characters`);
+    console.log('  Note: Verify transporter connection status in logs below');
+  } else {
+    console.error('  ✗ CRITICAL: Email user or password not configured!');
+    console.error('  Email will NOT be sent. Set EMAIL_USER and EMAIL_PASS environment variables.');
+  }
+  console.log('  💡 Check /api/health/email endpoint for detailed email diagnostics\n');
+
   // Then try to connect to MongoDB
   try {
     // Log MongoDB URI (without password)

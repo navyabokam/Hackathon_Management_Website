@@ -11,6 +11,27 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Verify SMTP connection on module load
+async function verifyEmailConfig(): Promise<void> {
+  try {
+    await transporter.verify();
+    console.log('✅ Email service connected successfully');
+    console.log(`📧 Email user: ${config.email.user}`);
+  } catch (error) {
+    console.error('❌ CRITICAL: Email service failed to connect!');
+    console.error('Error details:', error instanceof Error ? error.message : String(error));
+    console.error('Email config - USER:', config.email.user);
+    console.error('Email config - PASS set:', Boolean(config.email.pass));
+    console.error('This will cause email sending to fail in production!');
+    // Don't throw - let server start but alert about email issues
+  }
+}
+
+// Verify on startup
+verifyEmailConfig().catch(err => {
+  console.error('Fatal error during email verification:', err);
+});
+
 export async function sendRegistrationConfirmationEmail(team: ITeam): Promise<void> {
   const htmlContent = `
     <!DOCTYPE html>
@@ -304,10 +325,17 @@ export async function sendRegistrationConfirmationEmail(team: ITeam): Promise<vo
   };
 
   try {
-    await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
     console.log(`✅ Confirmation email sent to ${team.participant1Email}`);
+    console.log(`📬 Email response ID: ${info.messageId}`);
   } catch (error) {
-    console.error('❌ Failed to send confirmation email:', error);
+    console.error('❌ CRITICAL: Failed to send confirmation email');
+    console.error('Recipient:', team.participant1Email);
+    console.error('Error type:', error instanceof Error ? error.name : typeof error);
+    console.error('Error message:', error instanceof Error ? error.message : String(error));
+    if (error instanceof Error && 'code' in error) {
+      console.error('Error code:', (error as any).code);
+    }
     // Don't throw - email failure should not block registration
   }
 }
@@ -374,9 +402,17 @@ export async function sendConfirmationEmail(
   };
 
   try {
-    await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Confirmation email sent to ${to}`);
+    console.log(`📬 Email response ID: ${info.messageId}`);
   } catch (error) {
-    console.error('Failed to send email:', error);
+    console.error('❌ CRITICAL: Failed to send confirmation email');
+    console.error('Recipient:', to);
+    console.error('Error type:', error instanceof Error ? error.name : typeof error);
+    console.error('Error message:', error instanceof Error ? error.message : String(error));
+    if (error instanceof Error && 'code' in error) {
+      console.error('Error code:', (error as any).code);
+    }
     // Don't throw - email failure should not block registration
   }
 }
@@ -650,10 +686,17 @@ export async function sendRegistrationInitiatedEmail(team: ITeam): Promise<void>
   };
 
   try {
-    await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
     console.log(`✅ Registration initiated email sent to ${team.participant1Email}`);
+    console.log(`📬 Email response ID: ${info.messageId}`);
   } catch (error) {
-    console.error('❌ Failed to send registration initiated email:', error);
+    console.error('❌ CRITICAL: Failed to send registration initiated email');
+    console.error('Recipient:', team.participant1Email);
+    console.error('Error type:', error instanceof Error ? error.name : typeof error);
+    console.error('Error message:', error instanceof Error ? error.message : String(error));
+    if (error instanceof Error && 'code' in error) {
+      console.error('Error code:', (error as any).code);
+    }
     // Don't throw - email failure should not block registration
   }
 }
