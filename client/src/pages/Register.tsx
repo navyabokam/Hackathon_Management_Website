@@ -315,18 +315,18 @@ export default function Register(): React.ReactElement {
                 </div>
 
                 {/* QR Code Section */}
-                <div className="mb-6 p-6 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="mb-6 p-3 sm:p-6 bg-blue-50 border border-blue-200 rounded-lg">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Scan to Pay</h3>
-                  <div className="flex flex-col items-center">
-                    <div className="bg-white p-4 rounded-lg shadow-md mb-4">
+                  <div className="flex flex-col items-center overflow-x-hidden">
+                    <div className="bg-white p-2 sm:p-4 rounded-lg shadow-md mb-4">
                       {/* UPI QR Code Image */}
                       <img 
                         src="/upi.jpg" 
                         alt="UPI QR Code" 
-                        className="w-64 h-64 object-cover rounded"
+                        className="w-40 h-40 sm:w-48 sm:h-48 md:w-64 md:h-64 object-cover rounded"
                       />
                     </div>
-                    <p className="text-sm text-gray-600 text-center">
+                    <p className="text-xs sm:text-sm text-gray-600 text-center px-2">
                       Scan this QR code with your UPI app to complete the payment of ₹{PRICING[selectedTeamSize as keyof typeof PRICING]}
                     </p>
                   </div>
