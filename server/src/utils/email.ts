@@ -2,35 +2,85 @@ import nodemailer from 'nodemailer';
 import { config } from '../config/index.js';
 import type { ITeam } from '../models/index.js';
 
-// Create transporter for Gmail SMTP
+// Create transporter for Gmail SMTP with timeout configuration
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: config.email.user || 'forgeascend@gmail.com',
     pass: config.email.pass || '',
   },
+  // Add connection timeouts to prevent hanging on Render
+  connectionTimeout: 10000, // 10 seconds to establish connection
+  socketTimeout: 10000,     // 10 seconds for socket operations
+  greetingTimeout: 10000,   // 10 seconds for SMTP greeting
 });
 
-// Verify SMTP connection on module load
-async function verifyEmailConfig(): Promise<void> {
-  try {
-    await transporter.verify();
-    console.log('✅ Email service connected successfully');
-    console.log(`📧 Email user: ${config.email.user}`);
-  } catch (error) {
-    console.error('❌ CRITICAL: Email service failed to connect!');
-    console.error('Error details:', error instanceof Error ? error.message : String(error));
-    console.error('Email config - USER:', config.email.user);
-    console.error('Email config - PASS set:', Boolean(config.email.pass));
-    console.error('This will cause email sending to fail in production!');
-    // Don't throw - let server start but alert about email issues
+// Verify SMTP connection on module load (non-blocking)
+function verifyEmailConfig(): void {
+  console.log('📧 EMAIL SERVICE: Starting verification in background...');
+  if (!config.email.user || !config.email.pass) {
+    console.error('  ✗ CRITICAL: Email user or password not configured!');
+    console.error('  Email will NOT be sent. Set EMAIL_USER and EMAIL_PASS environment variables.');
+    return;
   }
+  
+  // Verify asynchronously without blocking server startup
+  transporter.verify()
+    .then(() => {
+      console.log('✅ Email service connected successfully');
+      console.log(`📧 Email user: ${config.email.user}`);
+    })
+    .catch((error) => {
+      console.error('❌ CRITICAL: Email service failed to verify!');
+      console.error('Error details:', error instanceof Error ? error.message : String(error));
+      if (error instanceof Error && 'code' in error) {
+        const code = (error as any).code;
+        if (code === 'ETIMEDOUT') {
+          console.error('⚠️  TIMEOUT: Cannot reach smtp.gmail.com from Render');
+          console.error('💡 Solution: Try switching to SendGrid (see EMAIL_SENDGRID_SETUP.md)');
+        } else if (code === 'EAUTH') {
+          console.error('⚠️  AUTH ERROR: Gmail authentication failed');
+          console.error('💡 Solution: Verify EMAIL_PASS is a valid Gmail App Password');
+        }
+      }
+    });
 }
 
-// Verify on startup
-verifyEmailConfig().catch(err => {
-  console.error('Fatal error during email verification:', err);
-});
+// Verify on startup (non-blocking)
+verifyEmailConfig();
+
+// Helper function to send emails with retry logic
+async function sendEmailWithRetry(mailOptions: any, maxRetries = 2): Promise<any> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`📧 Email attempt ${attempt}/${maxRetries}: ${mailOptions.to}`);
+      const info = await transporter.sendMail(mailOptions);
+      return info;
+    } catch (error) {
+      lastError = error as Error;
+      const code = (error as any)?.code;
+      const message = error instanceof Error ? error.message : String(error);
+      
+      console.error(`  ❌ Attempt ${attempt} failed: ${message}`);
+      
+      // Don't retry on auth errors
+      if (code === 'EAUTH') {
+        throw error;
+      }
+      
+      // Wait before retrying (100ms, 500ms, etc)
+      if (attempt < maxRetries) {
+        const waitTime = 100 * Math.pow(2, attempt - 1);
+        console.log(`  ⏳ Waiting ${waitTime}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      }
+    }
+  }
+  
+  throw lastError;
+}
 
 export async function sendRegistrationConfirmationEmail(team: ITeam): Promise<void> {
   const htmlContent = `
@@ -325,7 +375,7 @@ export async function sendRegistrationConfirmationEmail(team: ITeam): Promise<vo
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const info = await sendEmailWithRetry(mailOptions);
     console.log(`✅ Confirmation email sent to ${team.participant1Email}`);
     console.log(`📬 Email response ID: ${info.messageId}`);
   } catch (error) {
@@ -334,7 +384,12 @@ export async function sendRegistrationConfirmationEmail(team: ITeam): Promise<vo
     console.error('Error type:', error instanceof Error ? error.name : typeof error);
     console.error('Error message:', error instanceof Error ? error.message : String(error));
     if (error instanceof Error && 'code' in error) {
-      console.error('Error code:', (error as any).code);
+      const code = (error as any).code;
+      console.error('Error code:', code);
+      if (code === 'ETIMEDOUT') {
+        console.error('⚠️  RENDER TIMEOUT: Gmail SMTP unreachable');
+        console.error('💡 Solution: Switch to SendGrid or another email service');
+      }
     }
     // Don't throw - email failure should not block registration
   }
@@ -402,7 +457,7 @@ export async function sendConfirmationEmail(
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const info = await sendEmailWithRetry(mailOptions);
     console.log(`✅ Confirmation email sent to ${to}`);
     console.log(`📬 Email response ID: ${info.messageId}`);
   } catch (error) {
@@ -411,7 +466,12 @@ export async function sendConfirmationEmail(
     console.error('Error type:', error instanceof Error ? error.name : typeof error);
     console.error('Error message:', error instanceof Error ? error.message : String(error));
     if (error instanceof Error && 'code' in error) {
-      console.error('Error code:', (error as any).code);
+      const code = (error as any).code;
+      console.error('Error code:', code);
+      if (code === 'ETIMEDOUT') {
+        console.error('⚠️  RENDER TIMEOUT: Gmail SMTP unreachable');
+        console.error('💡 Solution: Switch to SendGrid or another email service');
+      }
     }
     // Don't throw - email failure should not block registration
   }
@@ -686,7 +746,7 @@ export async function sendRegistrationInitiatedEmail(team: ITeam): Promise<void>
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const info = await sendEmailWithRetry(mailOptions);
     console.log(`✅ Registration initiated email sent to ${team.participant1Email}`);
     console.log(`📬 Email response ID: ${info.messageId}`);
   } catch (error) {
@@ -695,7 +755,12 @@ export async function sendRegistrationInitiatedEmail(team: ITeam): Promise<void>
     console.error('Error type:', error instanceof Error ? error.name : typeof error);
     console.error('Error message:', error instanceof Error ? error.message : String(error));
     if (error instanceof Error && 'code' in error) {
-      console.error('Error code:', (error as any).code);
+      const code = (error as any).code;
+      console.error('Error code:', code);
+      if (code === 'ETIMEDOUT') {
+        console.error('⚠️  RENDER TIMEOUT: Gmail SMTP unreachable');
+        console.error('💡 Solution: Switch to SendGrid or another email service');
+      }
     }
     // Don't throw - email failure should not block registration
   }
