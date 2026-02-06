@@ -1,6 +1,9 @@
 import axios, { AxiosInstance } from 'axios';
 import type { Team, RegisterTeamInput } from '../types/index';
 
+// Admin secret key (stored when accessing admin panel)
+let adminSecretKey: string | null = null;
+
 // Determine backend URL based on current environment
 // In production on Render, use relative URL since server serves the client
 const backendUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:4000/api');
@@ -13,13 +16,35 @@ const api: AxiosInstance = axios.create({
   },
 });
 
+// Add interceptor to include secret key in admin requests
+api.interceptors.request.use((config) => {
+  if (adminSecretKey && config.url?.includes('/admin')) {
+    // Add secret key as query parameter
+    const separator = config.url.includes('?') ? '&' : '?';
+    config.url += `${separator}secretKey=${adminSecretKey}`;
+  }
+  return config;
+});
+
+// Function to set the admin secret key
+export function setAdminSecretKey(secretKey: string): void {
+  adminSecretKey = secretKey;
+}
+
+// Function to clear the admin secret key
+export function clearAdminSecretKey(): void {
+  adminSecretKey = null;
+}
+
 // Teams
 export async function createTeam(input: RegisterTeamInput): Promise<{
   registrationId: string;
   teamName: string;
   status: string;
 }> {
+  console.log('Sending team registration data:', input);
   const response = await api.post('/teams', input);
+  console.log('Team registration response:', response.data);
   return response.data;
 }
 

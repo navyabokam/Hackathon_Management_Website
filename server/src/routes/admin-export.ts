@@ -1,28 +1,38 @@
-import { Router, Response } from 'express';
+import { Router, Response, Request } from 'express';
 import * as XLSX from 'xlsx';
 import * as teamService from '../services/team.service.js';
-import { AuthRequest, authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 
-// GET /api/admin/export/excel - Export all teams to Excel (admin only)
-router.get('/excel', authMiddleware, async (req: AuthRequest, res: Response) => {
+// GET /api/admin/export/excel - Export all teams to Excel (admin only - secret key required)
+router.get('/excel', async (req: Request, res: Response) => {
   try {
     const { teams } = await teamService.getAllTeams(10000, 0); // Get all teams (up to 10000)
 
     // Prepare data for Excel
-    const excelData = teams.map((team) => ({
-      'Registration ID': team.registrationId,
-      'Team Name': team.teamName,
-      'College Name': team.collegeName,
-      'Team Size': team.teamSize,
-      'Status': team.status,
-      'Verification Status': team.verificationStatus,
-      'Payment Status': (team.payment as any)?.status || 'N/A',
-      'Created At': new Date(team.createdAt).toLocaleDateString(),
-      'Participants': team.participants.map((p) => `${p.fullName} (${p.email})`).join('; '),
-      'Leader Email': team.leaderEmail,
-    }));
+    const excelData = teams.map((team) => {
+      // Collect all participants
+      const participantList = [
+        team.participant1Name && team.participant1Email ? `${team.participant1Name} (${team.participant1Email})` : null,
+        team.participant2Name && team.participant2Email ? `${team.participant2Name} (${team.participant2Email})` : null,
+        team.participant3Name && team.participant3Email ? `${team.participant3Name} (${team.participant3Email})` : null,
+        team.participant4Name && team.participant4Email ? `${team.participant4Name} (${team.participant4Email})` : null,
+      ].filter((p) => p !== null).join('; ');
+
+      return {
+        'Registration ID': team.registrationId,
+        'Team Name': team.teamName,
+        'College Name': team.collegeName,
+        'Team Size': team.teamSize,
+        'Status': team.status,
+        'Verification Status': team.verificationStatus,
+        'Payment Status': (team.payment as any)?.status || 'N/A',
+        'UTR ID': team.utrId,
+        'Created At': new Date(team.createdAt).toLocaleDateString(),
+        'Participants': participantList,
+        'Leader Email': team.participant1Email,
+      };
+    });
 
     // Create workbook and worksheet
     const ws = XLSX.utils.json_to_sheet(excelData);
@@ -38,6 +48,7 @@ router.get('/excel', authMiddleware, async (req: AuthRequest, res: Response) => 
       { wch: 15 }, // Status
       { wch: 18 }, // Verification Status
       { wch: 15 }, // Payment Status
+      { wch: 20 }, // UTR ID
       { wch: 12 }, // Created At
       { wch: 40 }, // Participants
       { wch: 20 }, // Leader Email

@@ -10,13 +10,11 @@ export default function Landing(): React.ReactElement {
             <div className="flex items-center justify-center gap-3 sm:gap-4 w-full sm:w-auto">
               <img src="/klu-logo.jpg" alt="KL University Logo" className="h-12 sm:h-14 md:h-16 w-auto object-contain" />
               <img src="/gfg-logo.jpg" alt="GFG Logo" className="h-12 sm:h-14 md:h-16 w-auto object-contain" />
+              <img src="/logo.png" alt="ForgeAscend Logo" className="h-12 sm:h-14 md:h-16 w-auto object-contain" />
             </div>
             <div className="flex gap-3 sm:gap-4 w-full sm:w-auto justify-center">
               <a href="/register" className="px-5 sm:px-6 py-2.5 text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 whitespace-nowrap flex-1 sm:flex-none text-center">
                 Register Now
-              </a>
-              <a href="/admin/login" className="px-5 sm:px-6 py-2.5 text-sm sm:text-base text-blue-600 border border-blue-600 rounded hover:bg-blue-50 whitespace-nowrap flex-1 sm:flex-none text-center">
-                Admin
               </a>
             </div>
           </div>

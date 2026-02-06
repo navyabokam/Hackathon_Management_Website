@@ -1,40 +1,59 @@
 import React, { useState } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { RegisterTeamSchema, type RegisterTeamInput } from '../schemas/index';
 import * as api from '../services/api';
 
+const PRICING = {
+  '1': 349,   // Solo
+  '2': 599,   // Duo
+  '3': 999,   // Trio
+  '4': 999,   // Squad
+};
+
 export default function Register(): React.ReactElement {
   const [apiError, setApiError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedTeamSize, setSelectedTeamSize] = useState<string>('');
   const navigate = useNavigate();
 
   const {
     register,
-    control,
     handleSubmit,
     formState: { errors },
   } = useForm<RegisterTeamInput>({
     resolver: zodResolver(RegisterTeamSchema),
     defaultValues: {
-      participants: [{ fullName: '', email: '', phone: '', rollNumber: '' }],
+      teamName: '',
+      collegeName: '',
+      teamSize: '',
+      participant1Name: '',
+      participant1Email: '',
+      leaderPhone: '',
+      participant2Name: '',
+      participant2Email: '',
+      participant3Name: '',
+      participant3Email: '',
+      participant4Name: '',
+      participant4Email: '',
+      utrId: '',
+      paymentScreenshot: '',
+      confirmation: false,
     },
-  });
-
-  const { fields, append } = useFieldArray({
-    control,
-    name: 'participants',
   });
 
   const onSubmit = async (data: RegisterTeamInput) => {
     setApiError(null);
     setIsLoading(true);
     try {
+      console.log('Submitting registration:', data);
       const result = await api.createTeam(data);
-      // Navigate to payment page with registration ID
-      navigate(`/payment?registrationId=${result.registrationId}`);
+      console.log('Registration successful:', result);
+      // Navigate to confirmation page with registration ID
+      navigate(`/confirmation?registrationId=${result.registrationId}`);
     } catch (error) {
+      console.error('Registration error:', error);
       if (error instanceof Error) {
         setApiError(error.message);
       } else {
@@ -66,16 +85,18 @@ export default function Register(): React.ReactElement {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Team Info */}
-            <fieldset className="border-b pb-6">
-              <legend className="text-lg font-bold text-gray-900 mb-4">Team Information</legend>
+            {/* Step 1: Team Name and Size - FIRST */}
+            <fieldset className="border-b pb-6 bg-blue-50 p-4 rounded">
+              <legend className="text-lg font-bold text-gray-900 mb-4">Step 1: Team Information</legend>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Team Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Team Name <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
-                    placeholder="e.g., CodeMasters"
+                    placeholder="Enter your team name"
                     {...register('teamName')}
                     className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
@@ -83,10 +104,41 @@ export default function Register(): React.ReactElement {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">College Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Team Size <span className="text-red-500">*</span>
+                  </label>
+                  <div className="space-y-3">
+                    {(['1', '2', '3', '4'] as const).map((size) => {
+                      const labels = { '1': 'Solo (1 Member)', '2': 'Duo (2 Members)', '3': 'Trio (3 Members)', '4': 'Squad (4 Members)' };
+                      const cost = PRICING[size];
+                      return (
+                        <div key={size} className="flex items-center">
+                          <input
+                            type="radio"
+                            id={`teamSize-${size}`}
+                            value={size}
+                            {...register('teamSize')}
+                            onChange={(e) => setSelectedTeamSize(e.target.value)}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                          />
+                          <label htmlFor={`teamSize-${size}`} className="ml-3 flex items-center cursor-pointer">
+                            <span className="text-sm font-medium text-gray-700">{labels[size]}</span>
+                            <span className="ml-2 text-sm font-semibold text-blue-600">₹{cost}</span>
+                          </label>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {errors.teamSize && <p className="text-red-600 text-sm mt-2">{errors.teamSize.message}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    College / University Name <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
-                    placeholder="e.g., XYZ University"
+                    placeholder="Your college/university name"
                     {...register('collegeName')}
                     className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
@@ -95,134 +147,262 @@ export default function Register(): React.ReactElement {
               </div>
             </fieldset>
 
-            {/* Team Leader */}
-            <fieldset className="border-b pb-6">
-              <legend className="text-lg font-bold text-gray-900 mb-4">Team Leader</legend>
+            {/* Step 2: Team Lead - NOW STEP 2 */}
+            {selectedTeamSize && (
+              <fieldset className="border-b pb-6 bg-purple-50 p-4 rounded">
+                <legend className="text-lg font-bold text-gray-900 mb-4">Step 2: Team Leader</legend>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <input
-                    type="email"
-                    placeholder="leader@example.com"
-                    {...register('leaderEmail')}
-                    className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  {errors.leaderEmail && <p className="text-red-600 text-sm mt-1">{errors.leaderEmail.message}</p>}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Full Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Team leader full name"
+                      {...register('participant1Name')}
+                      className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    {errors.participant1Name && (
+                      <p className="text-red-600 text-sm mt-1">{errors.participant1Name.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email ID <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="teamleader@email.com"
+                      {...register('participant1Email')}
+                      className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    {errors.participant1Email && (
+                      <p className="text-red-600 text-sm mt-1">{errors.participant1Email.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Mobile <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="10-digit mobile number"
+                      {...register('leaderPhone')}
+                      className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    {errors.leaderPhone && <p className="text-red-600 text-sm mt-1">{errors.leaderPhone.message}</p>}
+                  </div>
                 </div>
+              </fieldset>
+            )}
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                  <input
-                    type="text"
-                    placeholder="1234567890"
-                    {...register('leaderPhone')}
-                    className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  {errors.leaderPhone && <p className="text-red-600 text-sm mt-1">{errors.leaderPhone.message}</p>}
-                </div>
-              </div>
-            </fieldset>
+            {/* Step 3: Additional Participants - THIRD */}
+            {selectedTeamSize && parseInt(selectedTeamSize) > 1 && (
+              <fieldset className="border-b pb-6 bg-yellow-50 p-4 rounded">
+                <legend className="text-lg font-bold text-gray-900 mb-4">Step 3: Team Members</legend>
 
-            {/* Participants */}
-            <fieldset className="pb-6">
-              <legend className="text-lg font-bold text-gray-900 mb-4">
-                Team Members ({fields.length}/4)
-              </legend>
-
-              <div className="space-y-6">
-                {fields.map((field, index) => (
-                  <div key={field.id} className="p-4 border border-gray-200 rounded bg-gray-50">
-                    <h3 className="font-semibold text-gray-900 mb-3">Member {index + 1}</h3>
-
-                    <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-6">
+                  {/* Participant 2 */}
+                  {parseInt(selectedTeamSize) >= 2 && (
+                    <div className="space-y-4 pb-4 border-b">
+                      <h3 className="font-semibold text-gray-900 text-base">Member 1 (Participant 2)</h3>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                         <input
                           type="text"
-                          placeholder="John Doe"
-                          {...register(`participants.${index}.fullName`)}
+                          placeholder="Member name"
+                          {...register('participant2Name')}
                           className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
-                        {errors.participants?.[index]?.fullName && (
-                          <p className="text-red-600 text-sm mt-1">
-                            {errors.participants[index]?.fullName?.message}
-                          </p>
+                        {errors.participant2Name && (
+                          <p className="text-red-600 text-sm mt-1">{errors.participant2Name.message}</p>
                         )}
                       </div>
-
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Email ID</label>
                         <input
                           type="email"
-                          placeholder="john@example.com"
-                          {...register(`participants.${index}.email`)}
+                          placeholder="member@email.com"
+                          {...register('participant2Email')}
                           className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
-                        {errors.participants?.[index]?.email && (
-                          <p className="text-red-600 text-sm mt-1">
-                            {errors.participants[index]?.email?.message}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                        <input
-                          type="text"
-                          placeholder="1234567890"
-                          {...register(`participants.${index}.phone`)}
-                          className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                        {errors.participants?.[index]?.phone && (
-                          <p className="text-red-600 text-sm mt-1">
-                            {errors.participants[index]?.phone?.message}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Roll Number</label>
-                        <input
-                          type="text"
-                          placeholder="CSE-001"
-                          {...register(`participants.${index}.rollNumber`)}
-                          className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                        {errors.participants?.[index]?.rollNumber && (
-                          <p className="text-red-600 text-sm mt-1">
-                            {errors.participants[index]?.rollNumber?.message}
-                          </p>
+                        {errors.participant2Email && (
+                          <p className="text-red-600 text-sm mt-1">{errors.participant2Email.message}</p>
                         )}
                       </div>
                     </div>
+                  )}
+
+                  {/* Participant 3 */}
+                  {parseInt(selectedTeamSize) >= 3 && (
+                    <div className="space-y-4 pb-4 border-b">
+                      <h3 className="font-semibold text-gray-900 text-base">Member 2 (Participant 3)</h3>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                        <input
+                          type="text"
+                          placeholder="Member name"
+                          {...register('participant3Name')}
+                          className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        {errors.participant3Name && (
+                          <p className="text-red-600 text-sm mt-1">{errors.participant3Name.message}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Email ID</label>
+                        <input
+                          type="email"
+                          placeholder="member@email.com"
+                          {...register('participant3Email')}
+                          className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        {errors.participant3Email && (
+                          <p className="text-red-600 text-sm mt-1">{errors.participant3Email.message}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Participant 4 */}
+                  {parseInt(selectedTeamSize) >= 4 && (
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-gray-900 text-base">Member 3 (Participant 4)</h3>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                        <input
+                          type="text"
+                          placeholder="Member name"
+                          {...register('participant4Name')}
+                          className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        {errors.participant4Name && (
+                          <p className="text-red-600 text-sm mt-1">{errors.participant4Name.message}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Email ID</label>
+                        <input
+                          type="email"
+                          placeholder="member@email.com"
+                          {...register('participant4Email')}
+                          className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        {errors.participant4Email && (
+                          <p className="text-red-600 text-sm mt-1">{errors.participant4Email.message}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </fieldset>
+            )}
+
+            {/* Step 4: Payment Section - FOURTH */}
+            {selectedTeamSize && (
+              <fieldset className="border-b pb-6 bg-red-50 p-4 rounded">
+                <legend className="text-lg font-bold text-gray-900 mb-4">Step 4: Payment Information</legend>
+
+                {/* Price Display */}
+                <div className="mb-6 p-4 bg-green-100 border border-green-300 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-semibold text-gray-900">Registration Fee:</span>
+                    <span className="text-2xl font-bold text-green-600">₹{PRICING[selectedTeamSize as keyof typeof PRICING]}</span>
                   </div>
-                ))}
+                </div>
+
+                {/* QR Code Section */}
+                <div className="mb-6 p-6 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Scan to Pay</h3>
+                  <div className="flex flex-col items-center">
+                    <div className="bg-white p-4 rounded-lg shadow-md mb-4">
+                      {/* UPI QR Code Image */}
+                      <img 
+                        src="/upi.jpg" 
+                        alt="UPI QR Code" 
+                        className="w-64 h-64 object-cover rounded"
+                      />
+                    </div>
+                    <p className="text-sm text-gray-600 text-center">
+                      Scan this QR code with your UPI app to complete the payment of ₹{PRICING[selectedTeamSize as keyof typeof PRICING]}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      UTR ID (Transaction Reference Number) <span className="text-red-500">*</span>
+                    </label>
+                    <p className="text-xs text-gray-500 mb-3">
+                      Enter the UTR after completing payment via the QR code
+                    </p>
+                    <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg flex justify-center">
+                      <img 
+                        src="/utr.jpg" 
+                        alt="UTR ID Example" 
+                        className="max-w-xs max-h-40 object-contain rounded"
+                      />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="e.g., 123456789"
+                      {...register('utrId')}
+                      className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    {errors.utrId && <p className="text-red-600 text-sm mt-1">{errors.utrId.message}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Payment Screenshot Google Drive Link <span className="text-red-500">*</span>
+                    </label>
+                    <p className="text-xs text-gray-500 mb-2">
+                      Upload the screenshot to Google Drive, set access to "Anyone with link can view", and paste the link here
+                    </p>
+                    <input
+                      type="url"
+                      placeholder="https://drive.google.com/..."
+                      {...register('paymentScreenshot')}
+                      className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    {errors.paymentScreenshot && (
+                      <p className="text-red-600 text-sm mt-1">{errors.paymentScreenshot.message}</p>
+                    )}
+                  </div>
+                </div>
+              </fieldset>
+            )}
+
+            {/* Confirmation */}
+            {selectedTeamSize && (
+              <div className="flex items-start space-x-3">
+                <input
+                  type="checkbox"
+                  {...register('confirmation')}
+                  className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label className="text-sm text-gray-700">
+                  <span className="text-red-500">*</span> I confirm that this registration is for my entire team, that
+                  all members have a valid NOC, and that the UTR ID entered is correct.
+                </label>
               </div>
-
-              {fields.length < 4 && (
-                <button
-                  type="button"
-                  onClick={() => append({ fullName: '', email: '', phone: '', rollNumber: '' })}
-                  className="mt-4 px-4 py-2 text-blue-600 border border-blue-600 rounded hover:bg-blue-50"
-                >
-                  + Add Another Member
-                </button>
-              )}
-
-              {errors.participants && typeof errors.participants.message === 'string' && (
-                <p className="text-red-600 text-sm mt-2">{errors.participants.message}</p>
-              )}
-            </fieldset>
+            )}
+            {errors.confirmation && <p className="text-red-600 text-sm mt-1">{errors.confirmation.message}</p>}
 
             {/* Submit */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 disabled:bg-gray-400"
-            >
-              {isLoading ? 'Processing...' : 'Proceed to Payment'}
-            </button>
+            {selectedTeamSize && (
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 disabled:bg-gray-400"
+              >
+                {isLoading ? 'Processing...' : 'Request to Join'}
+              </button>
+            )}
           </form>
         </div>
       </div>

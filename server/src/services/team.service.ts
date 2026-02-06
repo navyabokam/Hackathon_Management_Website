@@ -1,38 +1,13 @@
 import { Team, Payment, type ITeam } from '../models/index.js';
 import { RegisterTeamInput } from '../schemas/index.js';
 import { generateRegistrationId, generateTransactionRef } from '../utils/id-generator.js';
-import { sendConfirmationEmail } from '../utils/email.js';
+import { sendConfirmationEmail, sendRegistrationConfirmationEmail, sendRegistrationInitiatedEmail } from '../utils/email.js';
 import { config } from '../config/index.js';
 
 export async function checkDuplicateParticipants(
   input: RegisterTeamInput
-): Promise<{ isDuplicate: boolean; field?: string }> {
-  const emails = input.participants.map((p) => p.email);
-  const phones = input.participants.map((p) => p.phone);
-
-  const existingParticipants = await Team.findOne({
-    $or: [
-      { 'participants.email': { $in: emails } },
-      { 'participants.phone': { $in: phones } },
-    ],
-  });
-
-  if (existingParticipants) {
-    return { isDuplicate: true, field: 'participants' };
-  }
-
-  // Check leader email/phone
-  const existingLeader = await Team.findOne({
-    $or: [{ leaderEmail: input.leaderEmail }, { leaderPhone: input.leaderPhone }],
-  });
-
-  if (existingLeader) {
-    return {
-      isDuplicate: true,
-      field: 'leaderEmail/leaderPhone',
-    };
-  }
-
+): Promise<{ isDuplicate: boolean; field?: string; message?: string }> {
+  // No duplicate checking - allow all registrations
   return { isDuplicate: false };
 }
 
@@ -40,16 +15,25 @@ export async function createTeam(input: RegisterTeamInput): Promise<ITeam> {
   const registrationId = generateRegistrationId();
   const transactionRef = generateTransactionRef();
 
-  // Create team
+  // Create team with new structure
   const team = new Team({
     registrationId,
     teamName: input.teamName,
     collegeName: input.collegeName,
-    teamSize: input.participants.length,
-    participants: input.participants,
-    leaderEmail: input.leaderEmail,
+    teamSize: input.teamSize,
+    participant1Name: input.participant1Name,
+    participant1Email: input.participant1Email,
     leaderPhone: input.leaderPhone,
-    status: 'PENDING_PAYMENT',
+    participant2Name: input.participant2Name || '',
+    participant2Email: input.participant2Email || '',
+    participant3Name: input.participant3Name || '',
+    participant3Email: input.participant3Email || '',
+    participant4Name: input.participant4Name || '',
+    participant4Email: input.participant4Email || '',
+    utrId: input.utrId,
+    paymentScreenshot: input.paymentScreenshot,
+    confirmation: input.confirmation,
+    status: 'PENDING_PAYMENT', // Registration initiated, payment pending verification
   });
 
   await team.save();
@@ -59,9 +43,9 @@ export async function createTeam(input: RegisterTeamInput): Promise<ITeam> {
     teamId: team._id,
     amount: config.paymentAmount,
     currency: 'INR',
-    status: 'Pending',
-    transactionRef,
-    provider: 'mock',
+    status: 'Pending', // Payment under verification
+    transactionRef: input.utrId, // Use UTR as transaction ref
+    provider: 'UPI',
   });
 
   await payment.save();
@@ -69,6 +53,14 @@ export async function createTeam(input: RegisterTeamInput): Promise<ITeam> {
   // Link payment to team
   team.payment = payment._id;
   await team.save();
+
+  // Send registration initiated email (don't block on email failure)
+  try {
+    await sendRegistrationInitiatedEmail(team);
+  } catch (emailError) {
+    console.error('Email sending failed, but registration was successful:', emailError);
+    // Don't throw - registration is already successful
+  }
 
   return team;
 }
@@ -99,15 +91,9 @@ export async function confirmPayment(registrationId: string): Promise<ITeam> {
       team.status = 'CONFIRMED';
       await team.save();
 
-      // Send confirmation email
-      const memberEmails = team.participants.map((p) => p.fullName);
+      // Send confirmation email once payment is verified
       try {
-        await sendConfirmationEmail(
-          team.leaderEmail,
-          team.teamName,
-          registrationId,
-          memberEmails
-        );
+        await sendRegistrationConfirmationEmail(team);
       } catch (emailError) {
         console.error('Email sending failed, but payment confirmed:', emailError);
         // Don't throw - payment is already confirmed

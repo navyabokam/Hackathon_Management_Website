@@ -13,6 +13,7 @@ import { fileURLToPath } from 'url';
 
 import { config } from './config/index.js';
 import { errorHandler } from './middleware/error.js';
+import { combineMiddleware } from './middleware/auth.js';
 
 import teamsRouter from './routes/teams.js';
 import paymentsRouter from './routes/payments.js';
@@ -58,9 +59,9 @@ app.use('/api/health', healthRouter);
 app.use('/api/teams', teamsRouter);
 app.use('/api/payments', paymentsRouter);
 app.use('/api/admin/auth', adminAuthRouter);
-app.use('/api/admin/teams', adminTeamsRouter);
-app.use('/api/admin/search', adminSearchRouter);
-app.use('/api/admin/export', adminExportRouter);
+app.use('/api/admin/teams', combineMiddleware, adminTeamsRouter);
+app.use('/api/admin/search', combineMiddleware, adminSearchRouter);
+app.use('/api/admin/export', combineMiddleware, adminExportRouter);
 
 // Serve static files from client build in production
 if (config.nodeEnv === 'production') {

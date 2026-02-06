@@ -7,6 +7,7 @@ const router = Router();
 // POST /api/teams - Create a new team
 router.post('/', async (req: Request, res: Response) => {
   try {
+    console.log('Received team registration request body:', req.body);
     const input = RegisterTeamSchema.parse(req.body);
 
     // Check for duplicates with timeout protection
@@ -18,8 +19,16 @@ router.post('/', async (req: Request, res: Response) => {
     const duplicate = await Promise.race([duplicateCheckPromise, timeoutPromise]) as Awaited<ReturnType<typeof teamService.checkDuplicateParticipants>>;
     
     if (duplicate.isDuplicate) {
+      let errorMessage = '';
+      if (duplicate.field === 'team name') {
+        errorMessage = duplicate.message || `Team name "${input.teamName}" is already taken. Please choose a different team name.`;
+      } else if (duplicate.field === 'participant email') {
+        errorMessage = 'This email is already registered. Please use a different email address.';
+      } else if (duplicate.field === 'mobile number') {
+        errorMessage = 'This mobile number is already registered. Please use a different phone number.';
+      }
       res.status(409).json({
-        error: `Duplicate ${duplicate.field}: A participant with this email/phone already exists`,
+        error: errorMessage,
       });
       return;
     }
@@ -35,10 +44,9 @@ router.post('/', async (req: Request, res: Response) => {
     if (error instanceof Error && error.message === 'Duplicate check timeout') {
       console.error('Duplicate check timeout - server may be overloaded');
       res.status(503).json({ error: 'Service temporarily unavailable, please try again' });
-    } else if (error instanceof Error && error.message.includes('duplicate')) {
-      res.status(409).json({ error: 'Team or participant already registered' });
     } else if (error instanceof Error) {
-      console.error('Registration error:', error);
+      console.error('Registration error:', error.message);
+      // Don't check for "duplicate" in error message - just return the error as is
       res.status(400).json({ error: error.message });
     } else {
       console.error('Unknown registration error:', error);
@@ -66,8 +74,9 @@ router.get('/:registrationId', async (req: Request, res: Response) => {
       teamSize: team.teamSize,
       status: team.status,
       verificationStatus: team.verificationStatus,
-      participants: team.participants,
-      leaderEmail: team.leaderEmail,
+      participant1Email: team.participant1Email,
+      participant1Name: team.participant1Name,
+      leaderPhone: team.leaderPhone,
       paymentStatus: (team.payment as any)?.status,
     });
   } catch (error) {

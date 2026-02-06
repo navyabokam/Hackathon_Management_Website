@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as api from '../services/api';
+import { setAdminSecretKey, clearAdminSecretKey } from '../services/api';
 import type { Team } from '../types/index';
+
+// Admin secret key (should match backend)
+const ADMIN_SECRET_KEY = 'forgeascend-9XK';
 
 export default function AdminDashboard(): React.ReactElement {
   const navigate = useNavigate();
@@ -12,15 +16,11 @@ export default function AdminDashboard(): React.ReactElement {
   const [searchType, setSearchType] = useState<'registrationId' | 'teamName' | 'collegeName'>('teamName');
   const [isSearching, setIsSearching] = useState(false);
 
+  // Set the secret key when component mounts
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      navigate('/admin/login');
-      return;
-    }
-
+    setAdminSecretKey(ADMIN_SECRET_KEY);
     loadTeams();
-  }, [navigate]);
+  }, []);
 
   const loadTeams = async () => {
     setIsLoading(true);
@@ -31,9 +31,6 @@ export default function AdminDashboard(): React.ReactElement {
       setTeams(result.teams);
     } catch (err) {
       setError('Failed to load teams');
-      if ((err as any)?.response?.status === 401) {
-        navigate('/admin/login');
-      }
     } finally {
       setIsLoading(false);
     }
@@ -62,6 +59,7 @@ export default function AdminDashboard(): React.ReactElement {
     try {
       await api.logoutAdmin();
       localStorage.removeItem('authToken');
+      clearAdminSecretKey();
       navigate('/');
     } catch (err) {
       console.error('Logout failed:', err);
@@ -224,7 +222,7 @@ export default function AdminDashboard(): React.ReactElement {
                     <td className="px-6 py-4">{getVerificationBadge(team.verificationStatus)}</td>
                     <td className="px-6 py-4">
                       <a
-                        href={`/admin/teams/${team._id}`}
+                        href={`/admin/forgeascend-9XK/teams/${team._id}`}
                         className="text-blue-600 hover:text-blue-700 font-semibold text-sm"
                       >
                         View

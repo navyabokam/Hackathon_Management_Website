@@ -1,19 +1,21 @@
-export interface Participant {
-  fullName: string;
-  email: string;
-  phone: string;
-  rollNumber: string;
-}
-
 export interface Team {
   _id: string;
   registrationId: string;
   teamName: string;
   collegeName: string;
-  teamSize: number;
-  participants: Participant[];
-  leaderEmail: string;
+  teamSize: string;
+  participant1Name: string;
+  participant1Email: string;
   leaderPhone: string;
+  participant2Name?: string;
+  participant2Email?: string;
+  participant3Name?: string;
+  participant3Email?: string;
+  participant4Name?: string;
+  participant4Email?: string;
+  utrId: string;
+  paymentScreenshot: string;
+  confirmation: boolean;
   status: 'PENDING_PAYMENT' | 'CONFIRMED' | 'CANCELLED';
   verificationStatus: 'Not Verified' | 'Verified';
   paymentStatus?: 'Success' | 'Failed' | 'Pending';
@@ -44,9 +46,19 @@ export interface AdminUser {
 export interface RegisterTeamInput {
   teamName: string;
   collegeName: string;
-  leaderEmail: string;
+  teamSize: string;
+  participant1Name: string;
+  participant1Email: string;
   leaderPhone: string;
-  participants: Participant[];
+  participant2Name?: string;
+  participant2Email?: string;
+  participant3Name?: string;
+  participant3Email?: string;
+  participant4Name?: string;
+  participant4Email?: string;
+  utrId: string;
+  paymentScreenshot: string;
+  confirmation: boolean;
 }
 
 export interface LoginInput {

@@ -1,21 +1,23 @@
 import { z } from 'zod';
 
-const ParticipantSchema = z.object({
-  fullName: z.string().min(1, 'Full name is required'),
-  email: z.string().email('Invalid email address'),
-  phone: z.string().regex(/^\d{10,15}$/, 'Phone must be 10-15 digits'),
-  rollNumber: z.string().min(1, 'Roll number is required'),
-});
-
 export const RegisterTeamSchema = z.object({
   teamName: z.string().min(1, 'Team name is required').max(100, 'Team name too long'),
-  collegeName: z.string().min(1, 'College name is required').max(200, 'College name too long'),
-  leaderEmail: z.string().email('Invalid leader email'),
-  leaderPhone: z.string().regex(/^\d{10,15}$/, 'Leader phone must be 10-15 digits'),
-  participants: z
-    .array(ParticipantSchema)
-    .min(1, 'At least one participant is required')
-    .max(4, 'Maximum 4 participants allowed'),
+  collegeName: z.string().min(1, 'College/University name is required').max(200, 'College name too long'),
+  teamSize: z.string().min(1, 'Team size is required'),
+  participant1Name: z.string().min(1, 'Team leader full name is required'),
+  participant1Email: z.string().email('Team leader email is required'),
+  leaderPhone: z.string().regex(/^\d{10}$/, 'Mobile must be exactly 10 digits'),
+  participant2Name: z.string().default(''),
+  participant2Email: z.string().email('Invalid email').or(z.literal('')).default(''),
+  participant3Name: z.string().default(''),
+  participant3Email: z.string().email('Invalid email').or(z.literal('')).default(''),
+  participant4Name: z.string().default(''),
+  participant4Email: z.string().email('Invalid email').or(z.literal('')).default(''),
+  utrId: z.string().min(1, 'UTR ID is required'),
+  paymentScreenshot: z.string().url('Invalid Google Drive link').min(1, 'Payment screenshot link is required'),
+  confirmation: z.boolean().refine((val) => val === true, {
+    message: 'You must confirm the registration details',
+  }),
 });
 
 export const LoginSchema = z.object({

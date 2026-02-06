@@ -1,11 +1,10 @@
-import { Router, Response } from 'express';
+import { Router, Response, Request } from 'express';
 import * as teamService from '../services/team.service.js';
-import { AuthRequest, authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 
-// GET /api/admin/search/:type/:query - Search teams (admin only)
-router.get('/:type/:query', authMiddleware, async (req: AuthRequest, res: Response) => {
+// GET /api/admin/search/:type/:query - Search teams (admin only - secret key required)
+router.get('/:type/:query', async (req: Request, res: Response) => {
   try {
     const { type, query } = req.params;
 

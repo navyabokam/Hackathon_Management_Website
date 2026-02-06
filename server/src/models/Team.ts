@@ -1,12 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-export interface IParticipant {
-  fullName: string;
-  email: string;
-  phone: string;
-  rollNumber: string;
-}
-
 export interface IPaymentRef {
   teamId: mongoose.Types.ObjectId;
   amount: number;
@@ -22,26 +15,25 @@ export interface ITeam extends Document {
   registrationId: string;
   teamName: string;
   collegeName: string;
-  teamSize: number;
-  participants: IParticipant[];
-  leaderEmail: string;
+  teamSize: string;
+  participant1Name: string;
+  participant1Email: string;
   leaderPhone: string;
+  participant2Name?: string;
+  participant2Email?: string;
+  participant3Name?: string;
+  participant3Email?: string;
+  participant4Name?: string;
+  participant4Email?: string;
+  utrId: string;
+  paymentScreenshot: string;
+  confirmation: boolean;
   payment?: mongoose.Types.ObjectId;
   status: 'PENDING_PAYMENT' | 'CONFIRMED' | 'CANCELLED';
   verificationStatus: 'Not Verified' | 'Verified';
   createdAt: Date;
   updatedAt: Date;
 }
-
-const ParticipantSchema = new Schema<IParticipant>(
-  {
-    fullName: { type: String, required: true },
-    email: { type: String, required: true },
-    phone: { type: String, required: true },
-    rollNumber: { type: String, required: true },
-  },
-  { _id: false }
-);
 
 const TeamSchema = new Schema<ITeam>(
   {
@@ -53,7 +45,6 @@ const TeamSchema = new Schema<ITeam>(
     },
     teamName: {
       type: String,
-      unique: true,
       required: true,
       index: true,
     },
@@ -63,22 +54,62 @@ const TeamSchema = new Schema<ITeam>(
       index: true,
     },
     teamSize: {
-      type: Number,
+      type: String,
       required: true,
-      min: 1,
     },
-    participants: [ParticipantSchema],
-    leaderEmail: {
+    participant1Name: {
+      type: String,
+      required: true,
+    },
+    participant1Email: {
       type: String,
       required: true,
       unique: true,
+      sparse: true,
       index: true,
     },
     leaderPhone: {
       type: String,
       required: true,
       unique: true,
+      sparse: true,
       index: true,
+    },
+    participant2Name: {
+      type: String,
+      default: '',
+    },
+    participant2Email: {
+      type: String,
+      default: '',
+    },
+    participant3Name: {
+      type: String,
+      default: '',
+    },
+    participant3Email: {
+      type: String,
+      default: '',
+    },
+    participant4Name: {
+      type: String,
+      default: '',
+    },
+    participant4Email: {
+      type: String,
+      default: '',
+    },
+    utrId: {
+      type: String,
+      required: true,
+    },
+    paymentScreenshot: {
+      type: String,
+      required: true,
+    },
+    confirmation: {
+      type: Boolean,
+      required: true,
     },
     payment: {
       type: Schema.Types.ObjectId,

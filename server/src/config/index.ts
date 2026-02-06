@@ -19,6 +19,10 @@ export const config = {
     user: process.env.SMTP_USER || '',
     pass: process.env.SMTP_PASS || '',
   },
+  email: {
+    user: process.env.EMAIL_USER || 'forgeascend@gmail.com',
+    pass: process.env.EMAIL_PASS || '',
+  },
   admin: {
     email: process.env.ADMIN_EMAIL || 'admin@hackathon.local',
     password: process.env.ADMIN_PASSWORD || 'Admin@123',

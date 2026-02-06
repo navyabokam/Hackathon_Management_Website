@@ -1,11 +1,10 @@
-import { Router, Response } from 'express';
+import { Router, Response, Request } from 'express';
 import * as teamService from '../services/team.service.js';
-import { AuthRequest, authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 
-// GET /api/admin/teams - List all teams (admin only)
-router.get('/', authMiddleware, async (req: AuthRequest, res: Response) => {
+// GET /api/admin/teams - List all teams (admin only - secret key required)
+router.get('/', async (req: Request, res: Response) => {
   try {
     const limit = parseInt(req.query.limit as string) || 50;
     const skip = parseInt(req.query.skip as string) || 0;
@@ -35,7 +34,7 @@ router.get('/', authMiddleware, async (req: AuthRequest, res: Response) => {
 
 // GET /api/admin/search/:type/:query - Search teams (admin only)
 // Place this BEFORE /:id route so it matches first
-router.get('/search/:type/:query', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.get('/search/:type/:query', async (req: Request, res: Response) => {
   try {
     const { type, query } = req.params;
 
@@ -66,7 +65,7 @@ router.get('/search/:type/:query', authMiddleware, async (req: AuthRequest, res:
 });
 
 // GET /api/admin/teams/:id - Get team details (admin only)
-router.get('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const team = await teamService.getTeamById(id);
@@ -84,8 +83,17 @@ router.get('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
       teamSize: team.teamSize,
       status: team.status,
       verificationStatus: team.verificationStatus,
-      participants: team.participants,
-      leaderEmail: team.leaderEmail,
+      participant1Name: team.participant1Name,
+      participant1Email: team.participant1Email,
+      leaderPhone: team.leaderPhone,
+      participant2Name: team.participant2Name,
+      participant2Email: team.participant2Email,
+      participant3Name: team.participant3Name,
+      participant3Email: team.participant3Email,
+      participant4Name: team.participant4Name,
+      participant4Email: team.participant4Email,
+      utrId: team.utrId,
+      paymentScreenshot: team.paymentScreenshot,
       paymentStatus: (team.payment as any)?.status,
       createdAt: team.createdAt,
     });
@@ -96,7 +104,7 @@ router.get('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
 });
 
 // PATCH /api/admin/teams/:id/verify - Toggle verification status (admin only)
-router.patch('/:id/verify', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.patch('/:id/verify', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const team = await teamService.toggleTeamVerification(id);

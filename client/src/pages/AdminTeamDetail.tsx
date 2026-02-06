@@ -1,25 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import * as api from '../services/api';
+import { setAdminSecretKey } from '../services/api';
 import type { Team } from '../types/index';
+
+// Admin secret key (should match backend)
+const ADMIN_SECRET_KEY = 'forgeascend-9XK';
 
 export default function AdminTeamDetail(): React.ReactElement {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const [team, setTeam] = useState<Team | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
 
+  // Set the secret key when component mounts
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      navigate('/admin/login');
-      return;
+    setAdminSecretKey(ADMIN_SECRET_KEY);
+    if (id) {
+      loadTeam();
     }
-
-    loadTeam();
-  }, [id, navigate]);
+  }, [id]);
 
   const loadTeam = async () => {
     if (!id) return;
@@ -32,9 +33,6 @@ export default function AdminTeamDetail(): React.ReactElement {
       setTeam(teamData);
     } catch (err) {
       setError('Failed to load team details');
-      if ((err as any)?.response?.status === 401) {
-        navigate('/admin/login');
-      }
     } finally {
       setIsLoading(false);
     }
@@ -79,7 +77,7 @@ export default function AdminTeamDetail(): React.ReactElement {
       <div className="min-h-screen bg-gray-100">
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 py-6">
-            <a href="/admin/dashboard" className="text-blue-600 font-bold text-lg">
+            <a href="/admin/forgeascend-9XK/dashboard" className="text-blue-600 font-bold text-lg">
               ← Back to Dashboard
             </a>
           </div>
@@ -87,7 +85,7 @@ export default function AdminTeamDetail(): React.ReactElement {
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="bg-white rounded-lg shadow p-6 text-center">
             <p className="text-red-600 font-semibold mb-4">{error || 'Team not found'}</p>
-            <a href="/admin/dashboard" className="text-blue-600 hover:text-blue-700">
+            <a href="/admin/forgeascend-9XK/dashboard" className="text-blue-600 hover:text-blue-700">
               Back to Dashboard
             </a>
           </div>
@@ -126,7 +124,7 @@ export default function AdminTeamDetail(): React.ReactElement {
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <a href="/admin/dashboard" className="text-blue-600 font-bold text-lg">
+          <a href="/admin/forgeascend-9XK/dashboard" className="text-blue-600 font-bold text-lg">
             ← Back to Dashboard
           </a>
         </div>
@@ -205,42 +203,86 @@ export default function AdminTeamDetail(): React.ReactElement {
             </div>
           </div>
 
-          {/* Team Leader */}
-          <div className="border-t pt-6 mb-6">
-            <h2 className="font-bold text-lg text-gray-900 mb-3">Team Leader</h2>
-            <div className="bg-gray-50 p-4 rounded">
-              <p className="text-gray-700">
-                <span className="font-semibold">Email:</span> {team.leaderEmail}
-              </p>
-              <p className="text-gray-700">
-                <span className="font-semibold">Phone:</span> {team.leaderPhone}
-              </p>
-            </div>
-          </div>
-
           {/* Team Members */}
-          <div className="border-t pt-6">
+          <div className="border-t pt-6 mb-6">
             <h2 className="font-bold text-lg text-gray-900 mb-4">Team Members</h2>
             <div className="space-y-4">
-              {team.participants.map((participant, index) => (
-                <div key={index} className="bg-gray-50 p-4 rounded border border-gray-200">
-                  <h3 className="font-semibold text-gray-900 mb-2">Member {index + 1}</h3>
+              {/* Participant 1 (Team Leader) */}
+              <div className="bg-blue-50 p-4 rounded border border-blue-200">
+                <h3 className="font-semibold text-gray-900 mb-2">Participant 1 (Team Leader)</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <p>
+                    <span className="font-semibold">Name:</span> {team.participant1Name}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Email:</span> {team.participant1Email}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Mobile:</span> {team.leaderPhone}
+                  </p>
+                </div>
+              </div>
+
+              {/* Participant 2 */}
+              {team.participant2Name && team.participant2Name.trim() && (
+                <div className="bg-gray-50 p-4 rounded border border-gray-200">
+                  <h3 className="font-semibold text-gray-900 mb-2">Participant 2</h3>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <p>
-                      <span className="font-semibold">Name:</span> {participant.fullName}
+                      <span className="font-semibold">Name:</span> {team.participant2Name}
                     </p>
                     <p>
-                      <span className="font-semibold">Email:</span> {participant.email}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Phone:</span> {participant.phone}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Roll Number:</span> {participant.rollNumber}
+                      <span className="font-semibold">Email:</span> {team.participant2Email}
                     </p>
                   </div>
                 </div>
-              ))}
+              )}
+
+              {/* Participant 3 */}
+              {team.participant3Name && team.participant3Name.trim() && (
+                <div className="bg-gray-50 p-4 rounded border border-gray-200">
+                  <h3 className="font-semibold text-gray-900 mb-2">Participant 3</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <p>
+                      <span className="font-semibold">Name:</span> {team.participant3Name}
+                    </p>
+                    <p>
+                      <span className="font-semibold">Email:</span> {team.participant3Email}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Participant 4 */}
+              {team.participant4Name && team.participant4Name.trim() && (
+                <div className="bg-gray-50 p-4 rounded border border-gray-200">
+                  <h3 className="font-semibold text-gray-900 mb-2">Participant 4</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <p>
+                      <span className="font-semibold">Name:</span> {team.participant4Name}
+                    </p>
+                    <p>
+                      <span className="font-semibold">Email:</span> {team.participant4Email}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Payment Information */}
+          <div className="border-t pt-6">
+            <h2 className="font-bold text-lg text-gray-900 mb-3">Payment Information</h2>
+            <div className="bg-gray-50 p-4 rounded space-y-2">
+              <p className="text-gray-700">
+                <span className="font-semibold">UTR ID:</span> {team.utrId}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Payment Screenshot:</span>{' '}
+                <a href={team.paymentScreenshot} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  View Screenshot
+                </a>
+              </p>
             </div>
           </div>
         </div>

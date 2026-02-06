@@ -29,8 +29,9 @@ export default function Confirmation(): React.ReactElement {
           return;
         }
 
-        if (teamData.status !== 'CONFIRMED') {
-          setError(`This team registration is not confirmed. Current status: ${teamData.status}. Payment may have failed.`);
+        // Accept both PENDING_PAYMENT (initial registration) and CONFIRMED (after payment)
+        if (teamData.status !== 'CONFIRMED' && teamData.status !== 'PENDING_PAYMENT') {
+          setError(`This team registration has an unexpected status: ${teamData.status}. Please contact support.`);
           setIsLoading(false);
           return;
         }
@@ -120,7 +121,7 @@ export default function Confirmation(): React.ReactElement {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100">
+    <div className={`min-h-screen bg-gradient-to-b ${team.status === 'CONFIRMED' ? 'from-green-50 to-green-100' : 'from-yellow-50 to-amber-100'}`}>
       <header className="bg-white shadow">
         <nav className="max-w-7xl mx-auto px-4 py-6">
           <a href="/" className="text-blue-600 font-bold text-xl">
@@ -132,12 +133,20 @@ export default function Confirmation(): React.ReactElement {
       <div className="max-w-2xl mx-auto px-4 py-20">
         <div className="bg-white rounded-lg shadow-lg p-8">
           <div className="text-center mb-8">
-            <div className="text-7xl mb-4">✅</div>
-            <h1 className="text-4xl font-bold text-green-600 mb-2">Registration Confirmed!</h1>
-            <p className="text-gray-600">Thank you for registering for the College Hackathon.</p>
+            <div className={`text-7xl mb-4`}>
+              {team.status === 'CONFIRMED' ? '✅' : '📝'}
+            </div>
+            <h1 className={`text-4xl font-bold mb-2 ${team.status === 'CONFIRMED' ? 'text-green-600' : 'text-amber-600'}`}>
+              {team.status === 'CONFIRMED' ? 'Registration Confirmed!' : 'Registration Initiated'}
+            </h1>
+            <p className="text-gray-600">
+              {team.status === 'CONFIRMED' 
+                ? 'Thank you for registering for ForgeAscend v1.0.' 
+                : 'Your registration has been successfully initiated and is under verification.'}
+            </p>
           </div>
 
-          <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-lg mb-8 border border-blue-200">
+          <div className={`bg-gradient-to-r ${team.status === 'CONFIRMED' ? 'from-blue-50 to-blue-100 border-blue-200' : 'from-yellow-50 to-yellow-100 border-yellow-200'} p-6 rounded-lg mb-8 border-2`}>
             <h2 className="font-semibold text-gray-900 text-center mb-3">Your Registration ID</h2>
             <div className="text-center">
               <div className="inline-block bg-white px-6 py-3 rounded border-2 border-blue-600">
@@ -158,40 +167,69 @@ export default function Confirmation(): React.ReactElement {
                 <span className="font-semibold">{team.teamName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-700">College:</span>
+                <span className="text-gray-700">University:</span>
                 <span className="font-semibold">{team.collegeName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-700">Team Members:</span>
+                <span className="text-gray-700">Team Size:</span>
                 <span className="font-semibold">{team.teamSize}</span>
               </div>
               <div className="border-t pt-3">
-                <span className="text-gray-700">Members:</span>
-                <ul className="mt-2 ml-4 space-y-1">
-                  {team.participants.map((p, i) => (
-                    <li key={i} className="text-sm text-gray-600">
-                      • {p.fullName} ({p.email})
-                    </li>
-                  ))}
-                </ul>
+                <span className="text-gray-700">Team Leader:</span>
+                <p className="text-sm text-gray-600 mt-1">{team.participant1Name}</p>
+                <p className="text-sm text-gray-600">{team.participant1Email}</p>
               </div>
+              {(team.participant2Name || team.participant3Name || team.participant4Name) && (
+                <div className="border-t pt-3">
+                  <span className="text-gray-700">Team Members:</span>
+                  <ul className="mt-2 ml-4 space-y-1">
+                    {team.participant2Name && team.participant2Name.trim() && (
+                      <li className="text-sm text-gray-600">
+                        • {team.participant2Name} ({team.participant2Email})
+                      </li>
+                    )}
+                    {team.participant3Name && team.participant3Name.trim() && (
+                      <li className="text-sm text-gray-600">
+                        • {team.participant3Name} ({team.participant3Email})
+                      </li>
+                    )}
+                    {team.participant4Name && team.participant4Name.trim() && (
+                      <li className="text-sm text-gray-600">
+                        • {team.participant4Name} ({team.participant4Email})
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-6">
-            <p className="text-sm text-blue-800">
-              <strong>Email Confirmation:</strong> A confirmation email with all the details has been sent to your
-              team leader's email address.
+          {team.status === 'PENDING_PAYMENT' && (
+            <div className="bg-yellow-50 border border-yellow-300 rounded p-4 mb-6">
+              <p className="text-sm text-yellow-800">
+                <strong>⏳ Important:</strong> Your registration is currently under verification.
+                Once approved, you will receive a confirmation email.
+              </p>
+            </div>
+          )}
+
+          {team.status === 'CONFIRMED' && (
+            <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-6">
+              <p className="text-sm text-blue-800">
+                <strong>✉️ Email Sent:</strong> A confirmation email with all the details has been sent to your
+                team leader's email address.
+              </p>
+            </div>
+          )}
+
+          <div className="bg-purple-50 border border-purple-200 rounded p-4 mb-6">
+            <p className="text-sm text-purple-800">
+              <strong>🤝 Join Our Community:</strong> Follow us for updates, announcements, and more information about ForgeAscend v1.0.
+              Stay connected with fellow participants!
             </p>
           </div>
 
           <div className="space-y-3">
-            <a
-              href="/lookup"
-              className="block px-6 py-3 bg-blue-600 text-white text-center font-semibold rounded hover:bg-blue-700"
-            >
-              View Registration Status
-            </a>
             <a
               href="/"
               className="block px-6 py-3 text-gray-700 border border-gray-300 text-center rounded hover:bg-gray-50"
@@ -200,7 +238,7 @@ export default function Confirmation(): React.ReactElement {
             </a>
           </div>
 
-          <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+          <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
             <p>
               <strong>Next Steps:</strong> Make sure all team members arrive on time on the day of the hackathon.
               Bring a valid ID and be ready to verify using your Registration ID.
