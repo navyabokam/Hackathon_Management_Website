@@ -76,7 +76,7 @@ export default function Landing(): React.ReactElement {
               </div>
               <div className="text-left">
                 <h3 className="text-lg font-bold text-white mb-1">Date</h3>
-                <p className="text-blue-200 text-sm">20th & 21st February 2026</p>
+                <p className="text-blue-200 text-sm">21st & 22nd February 2026</p>
               </div>
             </div>
           </div>
@@ -89,7 +89,7 @@ export default function Landing(): React.ReactElement {
               </div>
               <div className="text-left">
                 <h3 className="text-lg font-bold text-white mb-1">Duration</h3>
-                <p className="text-blue-200 text-sm">10AM (Fri) to 10AM (Sat)</p>
+                <p className="text-blue-200 text-sm">Sat to Sun 10:AM to 10:00 AM</p>
               </div>
             </div>
           </div>
@@ -103,7 +103,7 @@ export default function Landing(): React.ReactElement {
               </div>
               <div className="text-left">
                 <h3 className="text-lg font-bold text-white mb-1">Venue</h3>
-                <p className="text-blue-200 text-sm">KLH Bachupally Campus</p>
+                <p className="text-blue-200 text-sm">KLH University Bachupally campus</p>
               </div>
             </div>
           </div>
