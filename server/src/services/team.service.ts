@@ -54,13 +54,11 @@ export async function createTeam(input: RegisterTeamInput): Promise<ITeam> {
   team.payment = payment._id;
   await team.save();
 
-  // Send registration initiated email (don't block on email failure)
-  try {
-    await sendRegistrationInitiatedEmail(team);
-  } catch (emailError) {
-    console.error('Email sending failed, but registration was successful:', emailError);
-    // Don't throw - registration is already successful
-  }
+  // Send registration initiated email in background (non-blocking)
+  // Email is sent asynchronously after response is returned to client
+  sendRegistrationInitiatedEmail(team)
+    .then(() => console.log('✉️ Registration email sent successfully'))
+    .catch((emailError) => console.error('⚠️ Email sending failed:', emailError));
 
   return team;
 }
@@ -91,13 +89,11 @@ export async function confirmPayment(registrationId: string): Promise<ITeam> {
       team.status = 'CONFIRMED';
       await team.save();
 
-      // Send confirmation email once payment is verified
-      try {
-        await sendRegistrationConfirmationEmail(team);
-      } catch (emailError) {
-        console.error('Email sending failed, but payment confirmed:', emailError);
-        // Don't throw - payment is already confirmed
-      }
+      // Send confirmation email in background (non-blocking)
+      // Email is sent asynchronously after response is returned to client
+      sendRegistrationConfirmationEmail(team)
+        .then(() => console.log('✉️ Confirmation email sent successfully'))
+        .catch((emailError) => console.error('⚠️ Email sending failed:', emailError));
     }
   }
 
