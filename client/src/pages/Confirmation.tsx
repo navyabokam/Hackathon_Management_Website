@@ -14,7 +14,7 @@ export default function Confirmation(): React.ReactElement {
   useEffect(() => {
     let retryCount = 0;
     const maxRetries = 5; // Try up to 5 times with 1 second delay
-    let timeoutId: NodeJS.Timeout | null = null;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
     const loadTeam = async () => {
       if (!registrationId) {
