@@ -58,11 +58,6 @@ app.use('/api/', limiter);
 app.use('/api/teams', strictLimiter);
 app.use('/api/payments', strictLimiter);
 
-// ✅ CHECKLIST: Root health check endpoint - no auth, no rate limit, minimal logic
-app.get('/', (_req, res) => {
-  res.status(200).json({ status: 'App is running' });
-});
-
 // Routes
 app.use('/api/health', healthRouter);
 app.use('/api/teams', teamsRouter);
