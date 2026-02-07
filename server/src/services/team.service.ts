@@ -118,14 +118,15 @@ export async function getAllTeams(
   limit = 50,
   skip = 0
 ): Promise<{ teams: ITeam[]; total: number }> {
-  // Don't use lean() with populate - it breaks the populated relations
-  // Just use regular queries for admin views where we need relations
-  const teams = await Team.find()
-    .populate('payment')
+  // Use lean() for faster queries AND to avoid serialization issues
+  // We don't need the full Mongoose document - just the data
+  const teams = (await Team.find()
+    .populate('payment', 'status') // Only fetch status field
     .limit(limit)
     .skip(skip)
     .sort({ createdAt: -1 })
-    .exec();
+    .lean() // Returns plain objects (faster + serializable)
+    .exec()) as any[];
 
   const total = await Team.countDocuments();
 
