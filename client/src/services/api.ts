@@ -26,6 +26,51 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Add interceptor to handle errors and extract error messages
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Extract meaningful error message from backend response
+    let errorMessage = 'Something went wrong. Please try again.';
+
+    if (error.response) {
+      // Server responded with error status
+      const data = error.response.data as any;
+      errorMessage = data?.error || data?.message || error.response.statusText || errorMessage;
+    } else if (error.request) {
+      // Request made but no server response
+      errorMessage = 'No response from server. Please check your connection.';
+    } else if (error.message) {
+      // Error in request setup
+      errorMessage = error.message;
+    }
+
+    // Create custom error with proper message
+    const customError = new Error(errorMessage);
+    customError.name = 'APIError';
+    (customError as any).status = error.response?.status;
+    (customError as any).originalError = error;
+
+    return Promise.reject(customError);
+  }
+);
+
+// Function to extract user-friendly error message
+export function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return 'An unexpected error occurred. Please try again.';
+}
+
+// Function to get HTTP status code from error
+export function getErrorStatus(error: unknown): number | undefined {
+  if (error instanceof Error && (error as any).status) {
+    return (error as any).status;
+  }
+  return undefined;
+}
+
 // Function to set the admin secret key
 export function setAdminSecretKey(secretKey: string): void {
   adminSecretKey = secretKey;

@@ -14,6 +14,7 @@ const PRICING = {
 
 export default function Register(): React.ReactElement {
   const [apiError, setApiError] = useState<string | null>(null);
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTeamSize, setSelectedTeamSize] = useState<string>('');
   const navigate = useNavigate();
@@ -43,8 +44,28 @@ export default function Register(): React.ReactElement {
     },
   });
 
+  const getErrorTitle = (errorMsg: string): string => {
+    if (errorMsg.toLowerCase().includes('duplicate') || errorMsg.toLowerCase().includes('already')) {
+      return 'Duplicate Entry';
+    }
+    if (errorMsg.toLowerCase().includes('email')) {
+      return 'Email Error';
+    }
+    if (errorMsg.toLowerCase().includes('phone') || errorMsg.toLowerCase().includes('mobile')) {
+      return 'Phone Number Error';
+    }
+    if (errorMsg.toLowerCase().includes('network') || errorMsg.toLowerCase().includes('connection')) {
+      return 'Connection Error';
+    }
+    if (errorMsg.toLowerCase().includes('timeout')) {
+      return 'Request Timeout';
+    }
+    return 'Registration Error';
+  };
+
   const onSubmit = async (data: RegisterTeamInput) => {
     setApiError(null);
+    setErrorDetails(null);
     setIsLoading(true);
     try {
       console.log('Submitting registration:', data);
@@ -54,11 +75,11 @@ export default function Register(): React.ReactElement {
       navigate(`/confirmation?registrationId=${result.registrationId}`);
     } catch (error) {
       console.error('Registration error:', error);
-      if (error instanceof Error) {
-        setApiError(error.message);
-      } else {
-        setApiError('Failed to register team');
-      }
+      
+      // Extract error message
+      const errorMessage = error instanceof Error ? error.message : 'Failed to register team';
+      setApiError(getErrorTitle(errorMessage));
+      setErrorDetails(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -79,8 +100,25 @@ export default function Register(): React.ReactElement {
           <h1 className="text-3xl font-bold text-gray-900 mb-6">Team Registration</h1>
 
           {apiError && (
-            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-              {apiError}
+            <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-red-800">{apiError}</h3>
+                  {errorDetails && (
+                    <p className="mt-2 text-sm text-red-700">
+                      {errorDetails}
+                    </p>
+                  )}
+                  <p className="mt-3 text-sm text-red-600">
+                    💡 <strong>Tip:</strong> Please check that all information is correct and try again. If the problem persists, contact us at forgeascend@gmail.com
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 

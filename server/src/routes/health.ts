@@ -1,6 +1,8 @@
 import { Router, Response } from 'express';
 import nodemailer from 'nodemailer';
+import mongoose from 'mongoose';
 import { config } from '../config/index.js';
+import { Team } from '../models/index.js';
 
 const router = Router();
 
@@ -51,6 +53,46 @@ router.get('/email', async (_req, res: Response) => {
   diagnostics.emailConfigured = diagnostics.errors.length === 0 && diagnostics.smtpConnection;
 
   res.status(diagnostics.emailConfigured ? 200 : 400).json(diagnostics);
+});
+
+// GET /api/health/db - Database diagnostics
+router.get('/db', async (_req, res: Response) => {
+  const diagnostics: any = {
+    mongoConnected: false,
+    mongoUri: config.mongodbUri ? '✓ Set' : '✗ Not set',
+    connectionState: mongoose.connection.readyState,
+    teamCollectionExists: false,
+    teamCount: 0,
+    errors: [],
+  };
+
+  // Check MongoDB URI
+  if (!config.mongodbUri) {
+    diagnostics.errors.push('✗ MONGODB_URI environment variable not set');
+  }
+
+  // Check connection state
+  const states: any = {
+    0: 'disconnected',
+    1: 'connected',
+    2: 'connecting',
+    3: 'disconnecting',
+  };
+  diagnostics.connectionStatus = states[mongoose.connection.readyState] || 'unknown';
+
+  try {
+    // Try to count teams in database
+    const teamCount = await Team.countDocuments();
+    diagnostics.teamCollectionExists = true;
+    diagnostics.teamCount = teamCount;
+    diagnostics.message = `✅ Database is healthy (${teamCount} teams found)`;
+  } catch (error) {
+    diagnostics.errors.push('✗ Cannot read from database');
+    diagnostics.errors.push(`Error: ${error instanceof Error ? error.message : String(error)}`);
+    diagnostics.message = '❌ Database connection or query failed';
+  }
+
+  res.status(diagnostics.errors.length === 0 ? 200 : 400).json(diagnostics);
 });
 
 export default router;

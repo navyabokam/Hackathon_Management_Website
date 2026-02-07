@@ -9,12 +9,14 @@ export default function Payment(): React.ReactElement {
   const [paymentInfo, setPaymentInfo] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
   const registrationId = searchParams.get('registrationId');
 
   useEffect(() => {
     const loadPayment = async () => {
       if (!registrationId) {
-        setError('No registration ID provided');
+        setError('Invalid Request');
+        setErrorDetails('No registration ID provided. Please start a new registration.');
         setIsLoading(false);
         return;
       }
@@ -23,7 +25,9 @@ export default function Payment(): React.ReactElement {
         const payment = await api.initiatePayment(registrationId);
         setPaymentInfo(payment);
       } catch (err) {
-        setError('Failed to load payment information');
+        const errorMsg = err instanceof Error ? err.message : 'Failed to load payment information';
+        setError('Payment Setup Error');
+        setErrorDetails(errorMsg);
       } finally {
         setIsLoading(false);
       }
@@ -41,7 +45,9 @@ export default function Payment(): React.ReactElement {
       // Navigate to confirmation page
       navigate(`/confirmation?registrationId=${registrationId}`);
     } catch (err) {
-      setError('Payment confirmation failed');
+      const errorMsg = err instanceof Error ? err.message : 'Payment confirmation failed';
+      setError('Payment Confirmation Error');
+      setErrorDetails(errorMsg);
     }
   };
 
@@ -50,13 +56,16 @@ export default function Payment(): React.ReactElement {
 
     try {
       await api.failPayment(registrationId);
-      setError('Payment failed. Please try again.');
+      setError('Payment Failed');
+      setErrorDetails('Your payment was not successful. Redirecting to registration...');
       // Optionally redirect after a delay
       setTimeout(() => {
         navigate('/register');
       }, 3000);
     } catch (err) {
-      setError('Error processing failed payment');
+      const errorMsg = err instanceof Error ? err.message : 'Error processing failed payment';
+      setError('Error');
+      setErrorDetails(errorMsg);
     }
   };
 
@@ -86,8 +95,25 @@ export default function Payment(): React.ReactElement {
           <h1 className="text-3xl font-bold text-gray-900 mb-6">Payment</h1>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-              {error}
+            <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-red-800">{error}</h3>
+                  {errorDetails && (
+                    <p className="mt-2 text-sm text-red-700">
+                      {errorDetails}
+                    </p>
+                  )}
+                  <p className="mt-3 text-sm text-red-600">
+                    💡 <strong>Tip:</strong> If the problem persists, contact support at forgeascend@gmail.com or call 6300458303
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 

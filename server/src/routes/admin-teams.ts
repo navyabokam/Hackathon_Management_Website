@@ -9,7 +9,11 @@ router.get('/', async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 50;
     const skip = parseInt(req.query.skip as string) || 0;
 
+    console.log(`📋 Admin teams request: limit=${limit}, skip=${skip}`);
+    
     const { teams, total } = await teamService.getAllTeams(limit, skip);
+
+    console.log(`✅ Retrieved ${teams.length} teams, total=${total}`);
 
     res.json({
       teams: teams.map((team) => ({
@@ -28,7 +32,12 @@ router.get('/', async (req: Request, res: Response) => {
       skip,
     });
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('❌ Error loading teams:', error instanceof Error ? error.message : String(error));
+    console.error('Full error:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 

@@ -66,14 +66,20 @@ router.get('/excel', async (req: Request, res: Response) => {
 
     // Generate Excel file
     const buffer = XLSX.write(wb, { bookType: 'xlsx', type: 'buffer' });
+    
+    console.log(`✅ Excel file generated successfully (${buffer.length} bytes)`);
 
     // Send file
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="teams_${new Date().toISOString().split('T')[0]}.xlsx"`);
     res.send(buffer);
   } catch (error) {
-    console.error('Export error:', error);
-    res.status(500).json({ error: 'Failed to export teams' });
+    console.error('❌ Export error:', error instanceof Error ? error.message : String(error));
+    console.error('Full error:', error);
+    res.status(500).json({ 
+      error: 'Failed to export teams',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 

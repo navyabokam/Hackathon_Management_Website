@@ -8,6 +8,8 @@ router.get('/:type/:query', async (req: Request, res: Response) => {
   try {
     const { type, query } = req.params;
 
+    console.log(`🔍 Search request: type=${type}, query=${query}`);
+
     if (!['registrationId', 'teamName', 'collegeName'].includes(type)) {
       res.status(400).json({ error: 'Invalid search type' });
       return;
@@ -17,6 +19,8 @@ router.get('/:type/:query', async (req: Request, res: Response) => {
       query,
       type as 'registrationId' | 'teamName' | 'collegeName'
     );
+
+    console.log(`✅ Found ${teams.length} teams matching search`);
 
     res.json({
       teams: teams.map((team) => ({
@@ -29,8 +33,12 @@ router.get('/:type/:query', async (req: Request, res: Response) => {
       })),
     });
   } catch (error) {
-    console.error('Search error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('❌ Search error:', error instanceof Error ? error.message : String(error));
+    console.error('Full error:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 
