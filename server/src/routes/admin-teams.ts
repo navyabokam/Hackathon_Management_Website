@@ -11,12 +11,12 @@ router.get('/', async (req: Request, res: Response) => {
 
     console.log(`📋 Admin teams request: limit=${limit}, skip=${skip}`);
     
-    const { teams, total } = await teamService.getAllTeams(limit, skip);
-
-    console.log(`✅ Retrieved ${teams.length} teams, total=${total}`);
+    const result = await teamService.getAllTeams(limit, skip);
+    
+    console.log(`✅ Retrieved ${result.teams.length} teams, total=${result.total}`);
 
     res.json({
-      teams: teams.map((team) => ({
+      teams: result.teams.map((team: any) => ({
         _id: team._id,
         registrationId: team.registrationId,
         teamName: team.teamName,
@@ -24,16 +24,16 @@ router.get('/', async (req: Request, res: Response) => {
         teamSize: team.teamSize,
         status: team.status,
         verificationStatus: team.verificationStatus,
-        paymentStatus: (team.payment as any)?.status,
+        paymentStatus: team.payment?.status || null,
         createdAt: team.createdAt,
       })),
-      total,
+      total: result.total,
       limit,
       skip,
     });
   } catch (error) {
     console.error('❌ Error loading teams:', error instanceof Error ? error.message : String(error));
-    console.error('Full error:', error);
+    console.error('Full error stack:', error);
     res.status(500).json({ 
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
