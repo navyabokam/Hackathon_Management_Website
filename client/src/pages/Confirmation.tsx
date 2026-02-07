@@ -12,6 +12,10 @@ export default function Confirmation(): React.ReactElement {
   const registrationId = searchParams.get('registrationId');
 
   useEffect(() => {
+    let retryCount = 0;
+    const maxRetries = 5; // Try up to 5 times with 1 second delay
+    let timeoutId: NodeJS.Timeout | null = null;
+
     const loadTeam = async () => {
       if (!registrationId) {
         setError('No registration ID provided');
@@ -24,7 +28,14 @@ export default function Confirmation(): React.ReactElement {
         console.log('Team data received:', teamData);
 
         if (!teamData) {
-          setError('Team not found');
+          // Retry if team not found (might still be syncing from database)
+          if (retryCount < maxRetries) {
+            retryCount++;
+            console.log(`Team not found, retrying (${retryCount}/${maxRetries})...`);
+            timeoutId = setTimeout(loadTeam, 1000); // Retry after 1 second
+            return;
+          }
+          setError('Team not found. Please check your registration ID and try again.');
           setIsLoading(false);
           return;
         }
@@ -37,15 +48,27 @@ export default function Confirmation(): React.ReactElement {
         }
 
         setTeam(teamData);
+        setIsLoading(false);
       } catch (err) {
         console.error('Error loading team:', err);
+        // Retry on network errors
+        if (retryCount < maxRetries) {
+          retryCount++;
+          console.log(`Error loading team, retrying (${retryCount}/${maxRetries})...`);
+          timeoutId = setTimeout(loadTeam, 1000); // Retry after 1 second
+          return;
+        }
         setError(`Failed to load registration details: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      } finally {
         setIsLoading(false);
       }
     };
 
     loadTeam();
+
+    // Cleanup timeout on component unmount
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [registrationId]);
 
   if (isLoading) {
@@ -75,12 +98,20 @@ export default function Confirmation(): React.ReactElement {
             <div className="text-6xl mb-6">❌</div>
             <h1 className="text-3xl font-bold text-red-600 mb-4">Confirmation Failed</h1>
             <p className="text-gray-700 mb-6">{error}</p>
-            <button
-              onClick={() => navigate('/register')}
-              className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Try Again
-            </button>
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={() => window.location.reload()}
+                className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Retry
+              </button>
+              <button
+                onClick={() => navigate('/register')}
+                className="px-6 py-3 bg-gray-600 text-white rounded hover:bg-gray-700"
+              >
+                New Registration
+              </button>
+            </div>
           </div>
         </div>
       </div>
