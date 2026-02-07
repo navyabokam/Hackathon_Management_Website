@@ -11,6 +11,9 @@ import mongoose from 'mongoose';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// FIX #2: Disable Mongoose query buffering (fail fast, don't hang)
+mongoose.set('bufferCommands', false);
+
 import { config } from './config/index.js';
 import { errorHandler } from './middleware/error.js';
 import { combineMiddleware } from './middleware/auth.js';
@@ -79,62 +82,99 @@ if (config.nodeEnv === 'production') {
 // Error handling
 app.use(errorHandler);
 
-export async function startServer(): Promise<void> {
-  // Start server first
-  const server = app.listen(config.port, () => {
-    console.log(`✓ Server running on http://localhost:${config.port}`);
-    console.log(`✓ Environment: ${config.nodeEnv}`);
-  });
-
-  // Log email configuration status
-  console.log('\n📧 EMAIL CONFIGURATION:');
-  if (config.email.user && config.email.pass) {
-    console.log(`  ✓ Email user: ${config.email.user}`);
-    console.log(`  ✓ Email password: ${config.email.pass.length} characters`);
-    console.log('  Note: Verify transporter connection status in logs below');
-  } else {
-    console.error('  ✗ CRITICAL: Email user or password not configured!');
-    console.error('  Email will NOT be sent. Set EMAIL_USER and EMAIL_PASS environment variables.');
-  }
-  console.log('  💡 Check /api/health/email endpoint for detailed email diagnostics\n');
-
-  // Then try to connect to MongoDB
+// FIX #1: Connect MongoDB BEFORE starting server (critical for production safety)
+async function connectDatabase(): Promise<void> {
   try {
+    // Check if already connected
+    if (mongoose.connection.readyState === 1) {
+      console.log('✓ MongoDB already connected');
+      return;
+    }
+
     // Log MongoDB URI (without password)
     const uriDisplay = config.mongodbUri.replace(/:[^@]+@/, ':***@');
     console.log(`📦 MongoDB URI: ${uriDisplay}`);
 
-    // Connect to MongoDB with timeout
     console.log('⏳ Connecting to MongoDB...');
+    
+    // FIX #3: Set proper timeouts for reliability
     await mongoose.connect(config.mongodbUri, {
-      serverSelectionTimeoutMS: 30000, // 30 second timeout
+      serverSelectionTimeoutMS: 5000,  // Fail fast if DB not available
       socketTimeoutMS: 45000,
-      connectTimeoutMS: 30000,
-      maxPoolSize: 50, // Increased connection pool for concurrent requests
+      connectTimeoutMS: 5000,
+      maxPoolSize: 50,
       minPoolSize: 5,
       maxIdleTimeMS: 60000,
     });
-    console.log('✓ Connected to MongoDB');
+    
+    console.log('✅ MongoDB connected successfully');
+    console.log(`📊 Connection state: ${mongoose.connection.readyState}`);
   } catch (error) {
-    console.error('✗ Failed to connect to MongoDB:', error);
+    console.error('❌ CRITICAL ERROR: Failed to connect to MongoDB');
     if (error instanceof Error) {
-      console.error('Error name:', error.name);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
+      console.error('Error:', error.message);
       
       if (error.message.includes('authentication') || error.message.includes('auth')) {
-        console.error('⚠️  MONGODB ERROR: Check your username/password');
+        console.error('💡 Fix: Check MongoDB username/password');
       } else if (error.message.includes('ENOTFOUND') || error.message.includes('getaddrinfo')) {
-        console.error('⚠️  DNS ERROR: Cannot resolve MongoDB hostname');
+        console.error('💡 Fix: Check MongoDB host URL');
       } else if (error.message.includes('timeout') || error.message.includes('ETIMEDOUT')) {
-        console.error('⚠️  TIMEOUT ERROR: Check MongoDB Atlas IP whitelist (add 0.0.0.0/0)');
+        console.error('💡 Fix: MongoDB not responding. Check Atlas status and IP whitelist');
       } else if (error.message.includes('connect')) {
-        console.error('⚠️  CONNECTION ERROR: Check MongoDB Atlas network access settings');
+        console.error('💡 Fix: Check MongoDB Atlas network access settings');
       }
-    } else {
-      console.error('Unknown error type:', typeof error, error);
     }
-    console.error('⚠️  Server will continue running without database');
+    
+    // FAIL FAST - don't continue if DB not connected
+    console.error('⚠️  Cannot start server without MongoDB connection');
+    process.exit(1);
+  }
+}
+
+export async function startServer(): Promise<void> {
+  try {
+    // FIX #1: Connect to MongoDB FIRST, before starting server
+    console.log('Starting server initialization...');
+    await connectDatabase();
+
+    // Now that DB is connected, start the Express server
+    const server = app.listen(config.port, () => {
+      console.log(`\n✅ Server running on http://localhost:${config.port}`);
+      console.log(`✅ Environment: ${config.nodeEnv}`);
+    });
+
+    // Log email configuration status
+    console.log('\n📧 EMAIL CONFIGURATION:');
+    if (config.email.user && config.email.pass) {
+      console.log(`  ✓ Email user: ${config.email.user}`);
+      console.log(`  ✓ Email password: ${config.email.pass.length} characters`);
+    } else {
+      console.error('  ✗ CRITICAL: Email user or password not configured!');
+      console.error('  Email will NOT be sent. Set EMAIL_USER and EMAIL_PASS environment variables.');
+    }
+    console.log('  💡 Check /api/health/email endpoint for detailed email diagnostics\n');
+
+    // Graceful shutdown handlers
+    process.on('SIGTERM', () => {
+      console.log('SIGTERM received, closing server gracefully...');
+      server.close(() => {
+        console.log('Server closed');
+        mongoose.connection.close();
+        process.exit(0);
+      });
+    });
+
+    process.on('SIGINT', () => {
+      console.log('SIGINT received, closing server gracefully...');
+      server.close(() => {
+        console.log('Server closed');
+        mongoose.connection.close();
+        process.exit(0);
+      });
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
   }
 }
 

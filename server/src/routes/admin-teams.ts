@@ -13,20 +13,30 @@ router.get('/', async (req: Request, res: Response) => {
     
     const result = await teamService.getAllTeams(limit, skip);
     
-    console.log(`✅ Retrieved ${result.teams.length} teams, total=${result.total}`);
+    console.log(`✅ Retrieved ${result.teams?.length || 0} teams, total=${result.total}`);
+
+    // Safely map teams, handle any undefined/null values
+    const mappedTeams = (result.teams || []).map((team: any) => {
+      try {
+        return {
+          _id: team?._id?.toString() || '',
+          registrationId: team?.registrationId || '',
+          teamName: team?.teamName || '',
+          collegeName: team?.collegeName || '',
+          teamSize: team?.teamSize || '',
+          status: team?.status || '',
+          verificationStatus: team?.verificationStatus || '',
+          paymentStatus: team?.payment?.status || null,
+          createdAt: team?.createdAt ? new Date(team.createdAt).toISOString() : new Date().toISOString(),
+        };
+      } catch (mapErr) {
+        console.error('Error mapping team:', mapErr, 'team:', JSON.stringify(team));
+        throw mapErr;
+      }
+    });
 
     res.json({
-      teams: result.teams.map((team: any) => ({
-        _id: team._id,
-        registrationId: team.registrationId,
-        teamName: team.teamName,
-        collegeName: team.collegeName,
-        teamSize: team.teamSize,
-        status: team.status,
-        verificationStatus: team.verificationStatus,
-        paymentStatus: team.payment?.status || null,
-        createdAt: team.createdAt,
-      })),
+      teams: mappedTeams,
       total: result.total,
       limit,
       skip,
@@ -36,7 +46,8 @@ router.get('/', async (req: Request, res: Response) => {
     console.error('Full error stack:', error);
     res.status(500).json({ 
       error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: process.env.NODE_ENV === 'production' ? undefined : error instanceof Error ? error.stack : String(error)
     });
   }
 });
