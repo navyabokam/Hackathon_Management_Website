@@ -221,7 +221,20 @@ export default function Landing(): React.ReactElement {
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-lg mb-2">&copy; 2026 ForgeAscend - KLH University Bachupally Campus</p>
           <p className="text-gray-400">Department of Computer Science & Engineering</p>
-          <p className="text-gray-500 mt-4 text-sm">For queries: forgeascend@gmail.com</p>
+          
+          <div className="mt-6 space-y-3">
+            <div className="text-sm text-gray-300">
+              <p className="font-semibold text-white mb-2">For Queries & Support</p>
+              <p className="mb-2">
+                📧 <a href="mailto:forgeascend@gmail.com" className="text-blue-400 hover:text-blue-300 transition">forgeascend@gmail.com</a>
+              </p>
+              <p className="mb-1">
+                📱 Contact:
+                <a href="tel:6300458303" className="text-blue-400 hover:text-blue-300 transition ml-2">6300458303</a> | 
+                <a href="tel:7673941313" className="text-blue-400 hover:text-blue-300 transition ml-2">7673941313</a>
+              </p>
+            </div>
+          </div>
         </div>
       </footer>
     </div>

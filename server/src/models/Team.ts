@@ -131,4 +131,9 @@ const TeamSchema = new Schema<ITeam>(
   { timestamps: true }
 );
 
+// Add text index for efficient search
+TeamSchema.index({ teamName: 'text', collegeName: 'text' });
+// Add compound index for common queries
+TeamSchema.index({ status: 1, createdAt: -1 });
+
 export const Team = mongoose.model<ITeam>('Team', TeamSchema);

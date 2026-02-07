@@ -254,10 +254,18 @@ export default function Confirmation(): React.ReactElement {
           )}
 
           <div className="bg-purple-50 border border-purple-200 rounded p-4 mb-6">
-            <p className="text-sm text-purple-800">
+            <p className="text-sm text-purple-800 mb-3">
               <strong>🤝 Join Our Community:</strong> Follow us for updates, announcements, and more information about ForgeAscend v1.0.
               Stay connected with fellow participants!
             </p>
+            <a
+              href="https://chat.whatsapp.com/EMQuLjEUhK2IyQOaCfNX6H"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition font-semibold"
+            >
+              📱 Join WhatsApp Community
+            </a>
           </div>
 
           <div className="space-y-3">

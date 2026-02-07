@@ -1,16 +1,25 @@
 import { Router, Response, Request } from 'express';
 import * as XLSX from 'xlsx';
 import * as teamService from '../services/team.service.js';
+import { Team, type ITeam } from '../models/index.js';
 
 const router = Router();
 
 // GET /api/admin/export/excel - Export all teams to Excel (admin only - secret key required)
 router.get('/excel', async (req: Request, res: Response) => {
   try {
-    const { teams } = await teamService.getAllTeams(10000, 0); // Get all teams (up to 10000)
+    // Use lean() for faster query (don't instantiate full documents)
+    const teams = (await Team.find()
+      .populate('payment', 'status')  // Only fetch status field from payment
+      .lean() // 3x faster than regular queries
+      .sort({ createdAt: -1 })
+      .limit(10000)
+      .exec()) as unknown as ITeam[];
 
+    console.log(`📊 Exporting ${teams.length} teams to Excel...`);
+    
     // Prepare data for Excel
-    const excelData = teams.map((team) => {
+    const excelData = teams.map((team: ITeam) => {
       // Collect all participants
       const participantList = [
         team.participant1Name && team.participant1Email ? `${team.participant1Name} (${team.participant1Email})` : null,
