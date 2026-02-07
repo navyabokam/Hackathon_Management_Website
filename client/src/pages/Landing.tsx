@@ -57,7 +57,9 @@ export default function Landing(): React.ReactElement {
             <p className="text-gray-300 text-sm sm:text-base uppercase tracking-widest mb-4 sm:mb-6">Sponsored By</p>
             <div className="bg-white/10 backdrop-blur-sm px-6 sm:px-12 md:px-24 py-6 sm:py-8 md:py-12 rounded-xl sm:rounded-2xl border border-white/20 hover:border-white/40 transition-all w-full sm:min-w-[500px] md:min-w-[800px] max-w-5xl">
               <div className="flex items-center justify-center gap-6 sm:gap-8 md:gap-12 flex-wrap">
-                <img src="/gradStreet.jpg" alt="GradStreet" className="h-10 sm:h-12 md:h-16 w-auto object-contain" />
+                <a href="https://www.gradstreet.co.in/" target="_blank" rel="noopener noreferrer">
+                  <img src="/gradStreet.jpg" alt="GradStreet" className="h-10 sm:h-12 md:h-16 w-auto object-contain hover:opacity-80 transition-opacity" />
+                </a>
               </div>
             </div>
           </div>
@@ -89,7 +91,7 @@ export default function Landing(): React.ReactElement {
               </div>
               <div className="text-left">
                 <h3 className="text-lg font-bold text-white mb-1">Duration</h3>
-                <p className="text-blue-200 text-sm">Sat to Sun 10:AM to 10:00 AM</p>
+                <p className="text-blue-200 text-sm">Saturday 10:00 AM to Sunday 10:00 AM</p>
               </div>
             </div>
           </div>
