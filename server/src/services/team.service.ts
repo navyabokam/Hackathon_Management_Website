@@ -118,13 +118,14 @@ export async function getAllTeams(
   limit = 50,
   skip = 0
 ): Promise<{ teams: ITeam[]; total: number }> {
-  const teams = (await Team.find()
+  // Don't use lean() with populate - it breaks the populated relations
+  // Just use regular queries for admin views where we need relations
+  const teams = await Team.find()
     .populate('payment')
     .limit(limit)
     .skip(skip)
     .sort({ createdAt: -1 })
-    .lean() // Use lean() for faster read-only queries (2-3x improvement)
-    .exec()) as unknown as ITeam[];
+    .exec();
 
   const total = await Team.countDocuments();
 
