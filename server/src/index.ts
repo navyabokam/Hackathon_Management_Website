@@ -41,10 +41,11 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(cookieParser());
 
-// Rate limiting
+// Rate limiting - exclude health check endpoints from rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 200, // limit each IP to 200 requests per windowMs
+  skip: (req) => req.path.match(/^\/api\/health/), // Skip rate limiting for all health check endpoints
 });
 
 const strictLimiter = rateLimit({
@@ -56,6 +57,11 @@ const strictLimiter = rateLimit({
 app.use('/api/', limiter);
 app.use('/api/teams', strictLimiter);
 app.use('/api/payments', strictLimiter);
+
+// ✅ CHECKLIST: Root health check endpoint - no auth, no rate limit, minimal logic
+app.get('/', (_req, res) => {
+  res.status(200).json({ status: 'App is running' });
+});
 
 // Routes
 app.use('/api/health', healthRouter);
@@ -125,19 +131,24 @@ async function connectDatabase(): Promise<void> {
       }
     }
     
-    // FAIL FAST - don't continue if DB not connected
-    console.error('⚠️  Cannot start server without MongoDB connection');
-    process.exit(1);
+    // ✅ CHECKLIST: Log error but DON'T block startup - server can start without DB
+    // This allows health check endpoints to function for monitoring
+    // (some database-dependent features will fail gracefully)
+    console.error('⚠️  DB connection failed - server starting in degraded mode');
+    console.error('    Some features requiring database access will fail.');
   }
 }
 
 export async function startServer(): Promise<void> {
   try {
-    // FIX #1: Connect to MongoDB FIRST, before starting server
+    // ✅ CHECKLIST: Connect to MongoDB asynchronously - don't block startup
+    // This allows the health check endpoint to work even if DB is temporarily down
     console.log('Starting server initialization...');
-    await connectDatabase();
+    connectDatabase().catch(err => {
+      // Error already logged in connectDatabase()
+    });
 
-    // Now that DB is connected, start the Express server
+    // Start the Express server immediately - don't wait for DB
     const server = app.listen(config.port, () => {
       console.log(`\n✅ Server running on http://localhost:${config.port}`);
       console.log(`✅ Environment: ${config.nodeEnv}`);
