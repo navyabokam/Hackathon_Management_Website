@@ -45,7 +45,7 @@ app.use(cookieParser());
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 200, // limit each IP to 200 requests per windowMs
-  skip: (req) => req.path.match(/^\/api\/health/), // Skip rate limiting for all health check endpoints
+  skip: (req) => /^\/api\/health/.test(req.path), // Skip rate limiting for all health check endpoints (returns boolean)
 });
 
 const strictLimiter = rateLimit({
