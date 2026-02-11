@@ -44,13 +44,13 @@ app.use(cookieParser());
 // Rate limiting - exclude health check endpoints from rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 200, // limit each IP to 200 requests per windowMs
+  max: 500, // Increased limit to 500 requests per windowMs
   skip: (req) => /^\/api\/health/.test(req.path), // Skip rate limiting for all health check endpoints (returns boolean)
 });
 
 const strictLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 50, // Allow more concurrent registrations from same IP (e.g., college campus)
+  max: 100, // Increased limit to 100 requests per windowMs for stricter endpoints
   skip: (req) => req.method === 'OPTIONS', // Skip rate limiting for CORS preflight
 });
 
