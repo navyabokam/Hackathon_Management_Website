@@ -40,6 +40,7 @@ router.get('/excel', async (req: Request, res: Response) => {
         'Created At': new Date(team.createdAt).toLocaleDateString(),
         'Participants': participantList,
         'Leader Email': team.participant1Email,
+        'Leader Phone': team.leaderPhone,
       };
     });
 
@@ -61,6 +62,7 @@ router.get('/excel', async (req: Request, res: Response) => {
       { wch: 12 }, // Created At
       { wch: 40 }, // Participants
       { wch: 20 }, // Leader Email
+      { wch: 20 }, // Leader Phone
     ];
     ws['!cols'] = colWidths;
 
