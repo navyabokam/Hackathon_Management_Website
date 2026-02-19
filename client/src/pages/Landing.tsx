@@ -250,7 +250,7 @@ export default function Landing(): React.ReactElement {
                     width="100%"
                     height="300"
                     style={{ border: 0, borderRadius: '8px', display: 'block' }}
-                    allowFullScreen=""
+                    allowFullScreen
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                   />
