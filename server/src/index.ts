@@ -34,6 +34,15 @@ const app: Express = express();
 // Middleware
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://maps.googleapis.com", "https://www.google.com"],
+      frameSrc: ["'self'", "https://www.google.com", "https://maps.google.com", "https://*.google.com"],
+      imgSrc: ["'self'", "https:", "data:"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+    },
+  },
 }));
 app.use(cors({ origin: config.clientOrigin, credentials: true }));
 app.use(morgan('combined'));
