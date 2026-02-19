@@ -218,6 +218,64 @@ export default function Landing(): React.ReactElement {
         </div>
       </section>
 
+      {/* Venue Section with Map */}
+      <section className="max-w-7xl mx-auto px-4 py-8">
+        <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6 text-center">Venue</h2>
+        <div className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 backdrop-blur-md rounded-xl border border-blue-400/30 overflow-hidden shadow-2xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 md:p-6">
+            {/* Venue Info */}
+            <div className="flex flex-col justify-center">
+              <div className="text-center md:text-left">
+                <h3 className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-cyan-300 mb-6">ForgeAscend v1.0</h3>
+                <div className="space-y-2 ml-0 md:ml-4">
+                  <p className="text-base md:text-lg text-blue-200 font-semibold tracking-wide">📍 KLH University</p>
+                  <p className="text-cyan-300 font-medium text-base md:text-lg">Bowrampet, Hyderabad</p>
+                  <p className="text-gray-300 text-base md:text-lg">Telangana, India</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Embedded Map */}
+            <div className="flex flex-col justify-center">
+              <a 
+                href="https://www.google.com/maps/place/KLH+University+Bowrampet+Hyderabad/@17.5472944,78.4041284,17z/data=!3m1!4b1!4m6!3m5!1s0x3bcb8f21c7b459b5:0xc307c84e835d6187!8m2!3d17.5472944!4d78.4041284!16s%2Fg%2F11pts80yjg?entry=ttu&g_ep=EgoyMDI2MDIxNi4wIKXMDSoASAFQAw%3D%3D"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative"
+              >
+                <div className="venue-map rounded-lg overflow-hidden shadow-xl mx-auto w-full max-w-xs border-2 border-cyan-400/50 group-hover:border-cyan-300 transition-all">
+                  <iframe
+                    title="ForgeAscend Venue Location"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3804.4945889066!2d78.40412842346939!3d17.54729471101288!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bcb8f21c7b459b5%3A0xc307c84e835d6187!2sKLH%20University%20Bowrampet!5e0!3m2!1sen!2sin!4v1708355400000"
+                    width="100%"
+                    height="300"
+                    style={{ border: 0, borderRadius: '8px', display: 'block' }}
+                    allowFullScreen=""
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center">
+                    <div className="bg-gradient-to-r from-cyan-400 to-blue-500 text-white px-4 py-2 rounded-full font-semibold text-xs shadow-lg">
+                      Click to view fullscreen →
+                    </div>
+                  </div>
+                </div>
+              </a>
+              <div className="mt-3 text-center">
+                <a 
+                  href="https://www.google.com/maps/place/KLH+University+Bowrampet+Hyderabad/@17.5472944,78.4041284,17z/data=!3m1!4b1!4m6!3m5!1s0x3bcb8f21c7b459b5:0xc307c84e835d6187!8m2!3d17.5472944!4d78.4041284!16s%2Fg%2F11pts80yjg?entry=ttu&g_ep=EgoyMDI2MDIxNi4wIKXMDSoASAFQAw%3D%3D"
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-semibold py-2 px-4 text-sm rounded-full transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+                >
+                  📍 Get Directions
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-black/50 backdrop-blur-md text-white py-10 mt-20">
         <div className="max-w-7xl mx-auto px-4 text-center">
