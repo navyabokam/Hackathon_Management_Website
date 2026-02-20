@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Landing from './pages/Landing';
 import Register from './pages/Register';
+import RegistrationClosed from './pages/RegistrationClosed';
 import Payment from './pages/Payment';
 import Confirmation from './pages/Confirmation';
 import Lookup from './pages/Lookup';
@@ -46,7 +47,7 @@ export default function App(): React.ReactElement {
     <Router>
       <Routes>
         <Route path="/" element={<Landing />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/register" element={<RegistrationClosed />} />
         <Route path="/payment" element={<Payment />} />
         <Route path="/confirmation" element={<Confirmation />} />
         <Route path="/lookup" element={<Lookup />} />
