@@ -1,7 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Landing from './pages/Landing';
-import Register from './pages/Register';
 import RegistrationClosed from './pages/RegistrationClosed';
 import Payment from './pages/Payment';
 import Confirmation from './pages/Confirmation';
